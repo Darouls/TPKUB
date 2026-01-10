@@ -493,6 +493,589 @@ apparmor module is loaded.
 0 processes are in mixed mode.
 0 processes are in kill mode.
 
+# ps -ef | grep dockerd
+root        3137       1  0 10:43 ?        00:00:01 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+root        5675    3638  0 11:28 pts/0    00:00:00 grep dockerd
+
+# systemctl list-unit-files --state=enabled
+UNIT FILE                          STATE   PRESET
+apparmor.service                   enabled enabled
+console-setup.service              enabled enabled
+containerd.service                 enabled enabled
+cron.service                       enabled enabled
+docker.service                     enabled enabled
+e2scrub_reap.service               enabled enabled
+getty@.service                     enabled enabled
+k3s.service                        enabled enabled
+keyboard-setup.service             enabled enabled
+networking.service                 enabled enabled
+rpcbind.service                    enabled enabled
+rpi-generate-ssh-host-keys.service enabled enabled
+rpi-set-sysconf.service            enabled enabled
+ssh.service                        enabled enabled
+systemd-pstore.service             enabled enabled
+systemd-timesyncd.service          enabled enabled
+ufw.service                        enabled enabled
+wpa_supplicant.service             enabled enabled
+docker.socket                      enabled enabled
+rpcbind.socket                     enabled enabled
+nfs-client.target                  enabled enabled
+remote-fs.target                   enabled enabled
+apt-daily-upgrade.timer            enabled enabled
+apt-daily.timer                    enabled enabled
+dpkg-db-backup.timer               enabled enabled
+e2scrub_all.timer                  enabled enabled
+fstrim.timer                       enabled enabled
+logrotate.timer                    enabled enabled
+
+# sysctl --system
+* Applying /usr/lib/sysctl.d/50-pid-max.conf ...
+* Applying /etc/sysctl.d/99-k8s-hardening.conf ...
+* Applying /usr/lib/sysctl.d/99-protect-links.conf ...
+* Applying /etc/sysctl.d/99-sysctl.conf ...
+* Applying /etc/sysctl.conf ...
+kernel.pid_max = 4194304
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv4.conf.all.rp_filter = 1
+fs.suid_dumpable = 0
+fs.protected_symlinks = 1
+fs.protected_hardlinks = 1
+fs.protected_fifos = 1
+fs.protected_hardlinks = 1
+fs.protected_regular = 2
+fs.protected_symlinks = 1
 
 
+ kubectl get nodes -o wide
+NAME        STATUS     ROLES                  AGE    VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION   CONTAINER-RUNTIME
+dakube      Ready      control-plane,master   276d   v1.32.3+k3s1   192.168.1.5   <none>        Debian GNU/Linux 12 (bookworm)   6.1.0-41-arm64   containerd://2.0.4-k3s2
+daproxmox   NotReady   control-plane,master   276d   v1.32.3+k3s1   192.168.1.5   <none>        Debian GNU/Linux 12 (bookworm)   6.1.0-32-arm64   containerd://2.0.4-k3s2
+root@dakube:~# kubectl describe node dakube
+Name:               dakube
+Roles:              control-plane,master
+Labels:             beta.kubernetes.io/arch=arm64
+                    beta.kubernetes.io/instance-type=k3s
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=arm64
+                    kubernetes.io/hostname=dakube
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/control-plane=true
+                    node-role.kubernetes.io/master=true
+                    node.kubernetes.io/instance-type=k3s
+Annotations:        alpha.kubernetes.io/provided-node-ip: 192.168.1.5,2a01:e0a:f7c:44e0:dea6:32ff:fe29:1236
+                    flannel.alpha.coreos.com/backend-data: {"VNI":1,"VtepMAC":"2e:08:f1:66:11:81"}
+                    flannel.alpha.coreos.com/backend-type: vxlan
+                    flannel.alpha.coreos.com/kube-subnet-manager: true
+                    flannel.alpha.coreos.com/public-ip: 192.168.1.5
+                    k3s.io/hostname: dakube
+                    k3s.io/internal-ip: 192.168.1.5,2a01:e0a:f7c:44e0:dea6:32ff:fe29:1236
+                    k3s.io/node-args: ["server","--disable","traefik","--write-kubeconfig-mode","644"]
+                    k3s.io/node-config-hash: Y735WCEK5OA7WRV7XHI7EBVBQNG2C7ABWJO2R25H2YIAEAJQVALA====
+                    k3s.io/node-env: {}
+                    node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Tue, 08 Apr 2025 22:57:09 +0000
+Taints:             <none>
+Unschedulable:      false
+Lease:
+  HolderIdentity:  dakube
+  AcquireTime:     <unset>
+  RenewTime:       Sat, 10 Jan 2026 11:31:57 +0000
+Conditions:
+  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
+  ----             ------  -----------------                 ------------------                ------                       -------
+  MemoryPressure   False   Sat, 10 Jan 2026 11:31:14 +0000   Tue, 08 Apr 2025 22:57:09 +0000   KubeletHasSufficientMemory   kubelet has sufficient memory available
+  DiskPressure     False   Sat, 10 Jan 2026 11:31:14 +0000   Tue, 08 Apr 2025 22:57:09 +0000   KubeletHasNoDiskPressure     kubelet has no disk pressure
+  PIDPressure      False   Sat, 10 Jan 2026 11:31:14 +0000   Tue, 08 Apr 2025 22:57:09 +0000   KubeletHasSufficientPID      kubelet has sufficient PID available
+  Ready            True    Sat, 10 Jan 2026 11:31:14 +0000   Tue, 08 Apr 2025 22:57:09 +0000   KubeletReady                 kubelet is posting ready status
+Addresses:
+  InternalIP:  192.168.1.5
+  InternalIP:  2a01:e0a:f7c:44e0:dea6:32ff:fe29:1236
+  Hostname:    dakube
+Capacity:
+  cpu:                4
+  ephemeral-storage:  60855576Ki
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  hugepages-32Mi:     0
+  hugepages-64Ki:     0
+  memory:             1886144Ki
+  pods:               110
+Allocatable:
+  cpu:                4
+  ephemeral-storage:  59200304287
+  hugepages-1Gi:      0
+  hugepages-2Mi:      0
+  hugepages-32Mi:     0
+  hugepages-64Ki:     0
+  memory:             1886144Ki
+  pods:               110
+System Info:
+  Machine ID:                 009b349ff625405a85550a4b44493392
+  System UUID:                009b349ff625405a85550a4b44493392
+  Boot ID:                    c1d33c67-8f31-4579-8dd8-9136aa07a047
+  Kernel Version:             6.1.0-41-arm64
+  OS Image:                   Debian GNU/Linux 12 (bookworm)
+  Operating System:           linux
+  Architecture:               arm64
+  Container Runtime Version:  containerd://2.0.4-k3s2
+  Kubelet Version:            v1.32.3+k3s1
+  Kube-Proxy Version:         v1.32.3+k3s1
+PodCIDR:                      10.42.1.0/24
+PodCIDRs:                     10.42.1.0/24
+ProviderID:                   k3s://dakube
+Non-terminated Pods:          (3 in total)
+  Namespace                   Name                                       CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
+  ---------                   ----                                       ------------  ----------  ---------------  -------------  ---
+  kube-system                 coredns-ff8999cc5-2hdqq                    100m (2%)     0 (0%)      70Mi (3%)        170Mi (9%)     275d
+  kube-system                 local-path-provisioner-774c6665dc-7mh4z    0 (0%)        0 (0%)      0 (0%)           0 (0%)         275d
+  kube-system                 metrics-server-6f4c6675d5-2kqg6            100m (2%)     0 (0%)      70Mi (3%)        0 (0%)         275d
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests    Limits
+  --------           --------    ------
+  cpu                200m (5%)   0 (0%)
+  memory             140Mi (7%)  170Mi (9%)
+  ephemeral-storage  0 (0%)      0 (0%)
+  hugepages-1Gi      0 (0%)      0 (0%)
+  hugepages-2Mi      0 (0%)      0 (0%)
+  hugepages-32Mi     0 (0%)      0 (0%)
+  hugepages-64Ki     0 (0%)      0 (0%)
+Events:
+  Type     Reason                             Age   From             Message
+  ----     ------                             ----  ----             -------
+  Normal   Starting                           52m   kube-proxy
+  Normal   Starting                           57m   kube-proxy
+  Warning  PossibleMemoryBackedVolumesOnDisk  57m   kubelet          The tmpfs noswap option is not supported. Memory-backed volumes (e.g. secrets, emptyDirs, etc.) might be swapped to disk and should no longer be considered secure.
+  Normal   Starting                           57m   kubelet          Starting kubelet.
+  Normal   NodeAllocatableEnforced            57m   kubelet          Updated Node Allocatable limit across pods
+  Warning  Rebooted                           57m   kubelet          Node dakube has been rebooted, boot id: f8c378c5-8405-40ca-87cb-b0aad57cca0e
+  Normal   NodeHasSufficientMemory            57m   kubelet          Node dakube status is now: NodeHasSufficientMemory
+  Normal   NodeHasNoDiskPressure              57m   kubelet          Node dakube status is now: NodeHasNoDiskPressure
+  Normal   NodeHasSufficientPID               57m   kubelet          Node dakube status is now: NodeHasSufficientPID
+  Normal   NodePasswordValidationComplete     57m   k3s-supervisor   Deferred node password secret validation complete
+  Normal   RegisteredNode                     56m   node-controller  Node dakube event: Registered Node dakube in Controller
+  Normal   Starting                           52m   kubelet          Starting kubelet.
+  Warning  InvalidDiskCapacity                52m   kubelet          invalid capacity 0 on image filesystem
+  Normal   NodeAllocatableEnforced            52m   kubelet          Updated Node Allocatable limit across pods
+  Normal   NodeHasSufficientMemory            52m   kubelet          Node dakube status is now: NodeHasSufficientMemory
+  Normal   NodeHasNoDiskPressure              52m   kubelet          Node dakube status is now: NodeHasNoDiskPressure
+  Normal   NodeHasSufficientPID               52m   kubelet          Node dakube status is now: NodeHasSufficientPID
+  Warning  Rebooted                           52m   kubelet          Node dakube has been rebooted, boot id: c1d33c67-8f31-4579-8dd8-9136aa07a047
+  Normal   NodePasswordValidationComplete     51m   k3s-supervisor   Deferred node password secret validation complete
+  Normal   RegisteredNode                     51m   node-controller  Node dakube event: Registered Node dakube in Controller
+
+
+
+
+
+TP 3
+
+# docker run -d --name test alpine sleep 300
+Unable to find image 'alpine:latest' locally
+latest: Pulling from library/alpine
+f6b4fb944634: Pull complete
+Digest: sha256:865b95f46d98cf867a156fe4a135ad3fe50d2056aa3f25ed31662dff6da4eb62
+Status: Downloaded newer image for alpine:latest
+3c93c30ffd2aed33036df2c213ebc38b2f7e14a7aa478bed3182bec7505fe4d2
+root@dakube:~# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED         STATUS         PORTS     NAMES
+3c93c30ffd2a   alpine    "sleep 300"   7 seconds ago   Up 6 seconds             test
+root@dakube:~# docker top ps
+Error response from daemon: No such container: ps
+root@dakube:~# docker top test
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+root                25551               25524               0                   21:14               ?                   00:00:00            sleep 300
+root@dakube:~# ps -ef |grep sleep
+root       25551   25524  0 21:14 ?        00:00:00 sleep 300
+root       25615   25409  0 21:14 pts/0    00:00:00 grep sleep
+root@dakube:~# docker exec test ps -ef
+PID   USER     TIME  COMMAND
+    1 root      0:00 sleep 300
+    7 root      0:00 ps -ef
+root@dakube:~# ps -ef
+UID          PID    PPID  C STIME TTY          TIME CMD
+root           1       0  0 10:39 ?        00:00:15 /sbin/init
+root           2       0  0 10:39 ?        00:00:00 [kthreadd]
+root           3       2  0 10:39 ?        00:00:00 [rcu_gp]
+root           4       2  0 10:39 ?        00:00:00 [rcu_par_gp]
+root           5       2  0 10:39 ?        00:00:00 [slub_flushwq]
+root           6       2  0 10:39 ?        00:00:00 [netns]
+root          10       2  0 10:39 ?        00:00:00 [mm_percpu_wq]
+root          11       2  0 10:39 ?        00:00:00 [rcu_tasks_rude_kthread]
+root          12       2  0 10:39 ?        00:00:00 [rcu_tasks_trace_kthread]
+root          13       2  0 10:39 ?        00:00:01 [ksoftirqd/0]
+root          14       2  0 10:39 ?        00:00:21 [rcu_sched]
+root          15       2  0 10:39 ?        00:00:00 [migration/0]
+root          17       2  0 10:39 ?        00:00:00 [cpuhp/0]
+root          18       2  0 10:39 ?        00:00:00 [cpuhp/1]
+root          19       2  0 10:39 ?        00:00:00 [migration/1]
+root          20       2  0 10:39 ?        00:00:00 [ksoftirqd/1]
+root          23       2  0 10:39 ?        00:00:00 [cpuhp/2]
+root          24       2  0 10:39 ?        00:00:00 [migration/2]
+root          25       2  0 10:39 ?        00:00:00 [ksoftirqd/2]
+root          28       2  0 10:39 ?        00:00:00 [cpuhp/3]
+root          29       2  0 10:39 ?        00:00:00 [migration/3]
+root          30       2  0 10:39 ?        00:00:01 [ksoftirqd/3]
+root          34       2  0 10:39 ?        00:00:00 [kdevtmpfs]
+root          35       2  0 10:39 ?        00:00:00 [inet_frag_wq]
+root          36       2  0 10:39 ?        00:00:00 [kauditd]
+root          37       2  0 10:39 ?        00:00:00 [khungtaskd]
+root          38       2  0 10:39 ?        00:00:00 [oom_reaper]
+root          40       2  0 10:39 ?        00:00:00 [writeback]
+root          41       2  0 10:39 ?        00:00:02 [kcompactd0]
+root          42       2  0 10:39 ?        00:00:00 [ksmd]
+root          44       2  0 10:39 ?        00:00:04 [khugepaged]
+root          45       2  0 10:39 ?        00:00:00 [kintegrityd]
+root          46       2  0 10:39 ?        00:00:00 [kblockd]
+root          47       2  0 10:39 ?        00:00:00 [blkcg_punt_bio]
+root          48       2  0 10:39 ?        00:00:00 [tpm_dev_wq]
+root          49       2  0 10:39 ?        00:00:00 [edac-poller]
+root          50       2  0 10:39 ?        00:00:00 [devfreq_wq]
+root          51       2  0 10:39 ?        00:00:00 [watchdogd]
+root          53       2  0 10:39 ?        00:00:01 [kworker/1:1H-kblockd]
+root          56       2  0 10:39 ?        00:00:00 [kswapd0]
+root          63       2  0 10:39 ?        00:00:00 [kthrotld]
+root          66       2  0 10:39 ?        00:00:00 [irq/23-aerdrv]
+root          68       2  0 10:39 ?        00:00:00 [mld]
+root          69       2  0 10:39 ?        00:00:00 [ipv6_addrconf]
+root          74       2  0 10:39 ?        00:00:00 [kstrp]
+root          79       2  0 10:39 ?        00:00:00 [zswap-shrink]
+root          80       2  0 10:39 ?        00:00:00 [kworker/u9:0-hci0]
+root         135       2  0 10:39 ?        00:00:01 [kworker/2:1H-kblockd]
+root         144       2  0 10:39 ?        00:00:00 [sdhci]
+root         145       2  0 10:39 ?        00:00:00 [sdhci]
+root         146       2  0 10:39 ?        00:00:00 [irq/35-mmc0]
+root         147       2  0 10:39 ?        00:00:00 [irq/35-mmc1]
+root         152       2  0 10:39 ?        00:00:00 [mmc_complete]
+root         153       2  0 10:39 ?        00:00:00 [ptp0]
+root         155       2  0 10:39 ?        00:00:03 [kworker/0:2H-kblockd]
+root         177       2  0 10:39 ?        00:00:01 [jbd2/mmcblk1p2-8]
+root         178       2  0 10:39 ?        00:00:00 [ext4-rsv-conver]
+root         233       1  0 10:39 ?        00:00:02 /lib/systemd/systemd-journald
+root         255       1  0 10:39 ?        00:00:00 /lib/systemd/systemd-udevd
+root         290       2  0 10:39 ?        00:00:00 [v3d_bin]
+root         291       2  0 10:39 ?        00:00:00 [v3d_render]
+root         292       2  0 10:39 ?        00:00:00 [v3d_tfu]
+root         293       2  0 10:39 ?        00:00:00 [v3d_csd]
+root         294       2  0 10:39 ?        00:00:00 [v3d_cache_clean]
+root         295       2  0 10:39 ?        00:00:00 [hwrng]
+root         296       2  0 10:39 ?        00:00:00 [vchiq-slot/0]
+root         297       2  0 10:39 ?        00:00:00 [vchiq-recy/0]
+root         298       2  0 10:39 ?        00:00:00 [vchiq-sync/0]
+root         319       2  0 10:39 ?        00:00:00 [cfg80211]
+root         344       2  0 10:39 ?        00:00:00 [brcmf_wq/mmc0:0]
+root         364       2  0 10:39 ?        00:00:00 [brcmf_wdog/mmc0:0001:1]
+root         386       2  0 10:39 ?        00:00:05 [sugov:0]
+root         389       2  0 10:39 ?        00:00:00 [vchiq-keep/0]
+_rpc         434       1  0 10:39 ?        00:00:00 /sbin/rpcbind -f -w
+root         436       2  0 10:39 ?        00:00:00 [rpciod]
+root         438       2  0 10:39 ?        00:00:00 [xprtiod]
+root         440       2  0 10:39 ?        00:00:00 [irq/43-vc4 hdmi hpd connected]
+root         445       2  0 10:39 ?        00:00:00 [irq/44-vc4 hdmi hpd disconnected]
+root         447       2  0 10:39 ?        00:00:00 [cec-vc4-hdmi-0]
+root         448       2  0 10:39 ?        00:00:00 [irq/45-vc4 hdmi cec rx]
+root         449       2  0 10:39 ?        00:00:00 [irq/46-vc4 hdmi cec tx]
+root         455       2  0 10:39 ?        00:00:00 [irq/47-vc4 hdmi hpd connected]
+root         456       2  0 10:39 ?        00:00:00 [irq/48-vc4 hdmi hpd disconnected]
+root         457       2  0 10:39 ?        00:00:00 [cec-vc4-hdmi-1]
+root         458       2  0 10:39 ?        00:00:00 [irq/49-vc4 hdmi cec rx]
+root         459       2  0 10:39 ?        00:00:00 [irq/50-vc4 hdmi cec tx]
+systemd+     460       1  0 10:39 ?        00:00:00 /lib/systemd/systemd-timesyncd
+root         461       2  0 10:39 ?        00:00:00 [card1-crtc0]
+root         462       2  0 10:39 ?        00:00:00 [card1-crtc1]
+root         463       2  0 10:39 ?        00:00:00 [card1-crtc2]
+root         464       2  0 10:39 ?        00:00:00 [card1-crtc3]
+root         465       2  0 10:39 ?        00:00:00 [card1-crtc4]
+root         494       2  0 10:39 ?        00:00:00 [kworker/u9:2-hci0]
+message+     508       1  0 10:39 ?        00:00:03 /usr/bin/dbus-daemon --system --address=systemd: --nofork --nopidfile --systemd-activation --syslog-only
+root         519       1  0 10:39 ?        00:00:00 /lib/systemd/systemd-logind
+root         530       1  0 10:39 ?        00:00:00 dhclient -4 -v -i -pf /run/dhclient.eth0.pid -lf /var/lib/dhcp/dhclient.eth0.leases -I -df /var/lib/dhcp/dhclient6.eth0.leases eth0
+root         598       2  0 10:39 ?        00:00:00 [nfsiod]
+root         601       1 11 10:39 ?        01:16:17 /usr/local/bin/k3s server
+root         617       2  0 10:39 ?        00:00:00 [NFSv4 callback]
+root         624       1  0 10:39 ?        00:00:00 /usr/sbin/cron -f
+root         626       1  0 10:39 tty1     00:00:00 /sbin/agetty -o -p -- \u --noclear - linux
+root         627       1  0 10:39 ttyS1    00:00:00 /sbin/agetty -o -p -- \u --keep-baud 115200,57600,38400,9600 - vt220
+root         817     601  1 10:40 ?        00:08:18 containerd
+root        1655       1  0 10:40 ?        00:00:56 /var/lib/rancher/k3s/data/d94a66173941bf5aa5e030399bb4920efcca85113a35ce46908399199866769f/bin/containerd-shim-runc-v2 -namespace k8s.io -id caeb80c03a1dd9cd
+root        1683       1  0 10:40 ?        00:00:56 /var/lib/rancher/k3s/data/d94a66173941bf5aa5e030399bb4920efcca85113a35ce46908399199866769f/bin/containerd-shim-runc-v2 -namespace k8s.io -id 015838bf7505a8fc
+65535       1730    1655  0 10:40 ?        00:00:00 /pause
+65535       1737    1683  0 10:40 ?        00:00:00 /pause
+root        1748       1  0 10:40 ?        00:00:54 /var/lib/rancher/k3s/data/d94a66173941bf5aa5e030399bb4920efcca85113a35ce46908399199866769f/bin/containerd-shim-runc-v2 -namespace k8s.io -id b290cc0adf7a1eb0
+65535       1794    1748  0 10:40 ?        00:00:00 /pause
+root        1857    1655  0 10:40 ?        00:00:11 local-path-provisioner start --config /etc/config/config.json
+65532       1865    1683  0 10:40 ?        00:03:56 /coredns -conf /etc/coredns/Corefile
+rouls       1898    1748  2 10:40 ?        00:15:45 /metrics-server --cert-dir=/tmp --secure-port=10250 --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --kubelet-use-node-status-port --metric-
+root        3092       1  0 10:43 ?        00:00:58 /usr/bin/containerd
+root        3137       1  0 10:43 ?        00:00:15 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+root        3783       1  0 10:48 ?        00:00:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+root        4173       2  0 10:50 ?        00:00:00 [kworker/3:2H-kblockd]
+root       14295       2  0 15:40 ?        00:00:03 [kworker/1:0-mm_percpu_wq]
+root       17313       2  0 17:10 ?        00:00:00 [kworker/0:0-events]
+root       20665       2  0 18:50 ?        00:00:00 [kworker/2:0-events]
+root       24215       2  0 20:37 ?        00:00:00 [kworker/u8:0-flush-179:0]
+root       24322       2  0 20:40 ?        00:00:00 [kworker/3:0-events_power_efficient]
+root       24682       2  0 20:50 ?        00:00:00 [kworker/1:2-cgroup_free]
+root       25017       2  0 21:00 ?        00:00:00 [kworker/0:0H]
+root       25105       2  0 21:03 ?        00:00:00 [kworker/u8:1-events_unbound]
+root       25169       2  0 21:05 ?        00:00:00 [kworker/3:2]
+root       25193       2  0 21:05 ?        00:00:00 [kworker/0:2-events]
+root       25220       2  0 21:06 ?        00:00:00 [kworker/2:2-events]
+root       25248       2  0 21:08 ?        00:00:00 [kworker/3:1H]
+root       25270       2  0 21:08 ?        00:00:00 [kworker/2:0H-kblockd]
+root       25302       2  0 21:09 ?        00:00:00 [kworker/u8:2-flush-179:0]
+root       25362       2  0 21:10 ?        00:00:00 [kworker/1:2H]
+root       25371    3783  0 21:11 ?        00:00:00 sshd: rouls [priv]
+rouls      25374       1  0 21:11 ?        00:00:00 /lib/systemd/systemd --user
+rouls      25375   25374  0 21:11 ?        00:00:00 (sd-pam)
+root       25376       2  0 21:11 ?        00:00:00 [kworker/1:1-events]
+rouls      25386   25371  0 21:11 ?        00:00:00 sshd: rouls@pts/0
+rouls      25387   25386  0 21:11 pts/0    00:00:00 -sh
+root       25392   25387  0 21:11 pts/0    00:00:00 su -
+root       25409   25392  0 21:11 pts/0    00:00:00 -bash
+root       25412       2  0 21:11 ?        00:00:00 [kworker/u8:3-events_unbound]
+root       25425       2  0 21:12 ?        00:00:00 [kworker/2:1-events]
+root       25440       2  0 21:12 ?        00:00:00 [kworker/0:1-mm_percpu_wq]
+root       25477       2  0 21:13 ?        00:00:00 [kworker/3:0H-kblockd]
+root       25524       1  0 21:14 ?        00:00:00 /usr/bin/containerd-shim-runc-v2 -namespace moby -id 3c93c30ffd2aed33036df2c213ebc38b2f7e14a7aa478bed3182bec7505fe4d2 -address /run/containerd/containerd.soc
+root       25551   25524  0 21:14 ?        00:00:00 sleep 300
+root       25613       2  0 21:14 ?        00:00:00 [kworker/0:1H-kblockd]
+root       25695   25409 99 21:15 pts/0    00:00:00 ps -ef
+root@dakube:~# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED         STATUS         PORTS     NAMES
+3c93c30ffd2a   alpine    "sleep 300"   2 minutes ago   Up 2 minutes             test
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# lsns
+        NS TYPE   NPROCS   PID USER             COMMAND
+4026531834 time      147     1 root             /sbin/init
+4026531835 cgroup    144     1 root             /sbin/init
+4026531836 pid       141     1 root             /sbin/init
+4026531837 user      147     1 root             /sbin/init
+4026531838 uts       138     1 root             /sbin/init
+4026531839 ipc       141     1 root             /sbin/init
+4026531840 net       141     1 root             /sbin/init
+4026531841 mnt       137     1 root             /sbin/init
+4026532207 mnt         1   255 root             |-/lib/systemd/systemd-udevd
+4026532208 uts         1   255 root             |-/lib/systemd/systemd-udevd
+4026532468 mnt         1   460 systemd-timesync |-/lib/systemd/systemd-timesyncd
+4026532472 uts         1   460 systemd-timesync |-/lib/systemd/systemd-timesyncd
+4026532547 mnt         1   519 root             |-/lib/systemd/systemd-logind
+4026532548 uts         1   519 root             `-/lib/systemd/systemd-logind
+4026531862 mnt         1    34 root             kdevtmpfs
+4026532509 net         2  1730 65535            /pause
+4026532608 net         2  1737 65535            /pause
+4026532692 net         2  1794 65535            /pause
+4026532773 mnt         1  1730 65535            /pause
+4026532774 uts         2  1730 65535            /pause
+4026532775 ipc         2  1730 65535            /pause
+4026532776 pid         1  1730 65535            /pause
+4026532777 mnt         1  1737 65535            /pause
+4026532778 uts         2  1737 65535            /pause
+4026532779 ipc         2  1737 65535            /pause
+4026532780 pid         1  1737 65535            /pause
+4026532781 mnt         1  1794 65535            /pause
+4026532782 uts         2  1794 65535            /pause
+4026532783 ipc         2  1794 65535            /pause
+4026532784 pid         1  1794 65535            /pause
+4026532785 mnt         1  1857 root             local-path-provisioner start --config /etc/config/config.json
+4026532786 pid         1  1857 root             local-path-provisioner start --config /etc/config/config.json
+4026532787 cgroup      1  1857 root             local-path-provisioner start --config /etc/config/config.json
+4026532788 mnt         1  1865 65532            /coredns -conf /etc/coredns/Corefile
+4026532789 pid         1  1865 65532            /coredns -conf /etc/coredns/Corefile
+4026532790 cgroup      1  1865 65532            /coredns -conf /etc/coredns/Corefile
+4026532791 mnt         1  1898 rouls            /metrics-server --cert-dir=/tmp --secure-port=10250 --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --kubelet-use-node-status-port --metric-reso
+4026532792 pid         1  1898 rouls            /metrics-server --cert-dir=/tmp --secure-port=10250 --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --kubelet-use-node-status-port --metric-reso
+4026532793 cgroup      1  1898 rouls            /metrics-server --cert-dir=/tmp --secure-port=10250 --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --kubelet-use-node-status-port --metric-reso
+root@dakube:~# lsns |grep test
+root@dakube:~# docker run -d --name test alpine sleep 300
+docker: Error response from daemon: Conflict. The container name "/test" is already in use by container "3c93c30ffd2aed33036df2c213ebc38b2f7e14a7aa478bed3182bec7505fe4d2". You have to remove (or rename) that container to be able to reuse that name.
+
+Run 'docker run --help' for more information
+root@dakube:~# lsns |grep test
+root@dakube:~# docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+root@dakube:~# docker top ps
+Error response from daemon: No such container: ps
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# docker top
+docker: 'docker top' requires at least 1 argument
+
+Usage:  docker top CONTAINER [ps OPTIONS]
+
+See 'docker top --help' for more information
+root@dakube:~# pid=$(docker inspect -f '{{.State.Pid}}' test)
+root@dakube:~# lsns -p $pid
+        NS TYPE   NPROCS   PID USER             COMMAND
+4026531834 time      146     1 root             /sbin/init
+4026531835 cgroup    143     1 root             /sbin/init
+4026531836 pid       140     1 root             /sbin/init
+4026531837 user      146     1 root             /sbin/init
+4026531838 uts       137     1 root             /sbin/init
+4026531839 ipc       140     1 root             /sbin/init
+4026531840 net       140     1 root             /sbin/init
+4026531841 mnt       136     1 root             /sbin/init
+4026532207 mnt         1   255 root             |-/lib/systemd/systemd-udevd
+4026532208 uts         1   255 root             |-/lib/systemd/systemd-udevd
+4026532468 mnt         1   460 systemd-timesync |-/lib/systemd/systemd-timesyncd
+4026532472 uts         1   460 systemd-timesync |-/lib/systemd/systemd-timesyncd
+4026532547 mnt         1   519 root             |-/lib/systemd/systemd-logind
+4026532548 uts         1   519 root             `-/lib/systemd/systemd-logind
+4026531862 mnt         1    34 root             kdevtmpfs
+4026532509 net         2  1730 65535            /pause
+4026532608 net         2  1737 65535            /pause
+4026532692 net         2  1794 65535            /pause
+4026532773 mnt         1  1730 65535            /pause
+4026532774 uts         2  1730 65535            /pause
+4026532775 ipc         2  1730 65535            /pause
+4026532776 pid         1  1730 65535            /pause
+4026532777 mnt         1  1737 65535            /pause
+4026532778 uts         2  1737 65535            /pause
+4026532779 ipc         2  1737 65535            /pause
+4026532780 pid         1  1737 65535            /pause
+4026532781 mnt         1  1794 65535            /pause
+4026532782 uts         2  1794 65535            /pause
+4026532783 ipc         2  1794 65535            /pause
+4026532784 pid         1  1794 65535            /pause
+4026532785 mnt         1  1857 root             local-path-provisioner start --config /etc/config/config.json
+4026532786 pid         1  1857 root             local-path-provisioner start --config /etc/config/config.json
+4026532787 cgroup      1  1857 root             local-path-provisioner start --config /etc/config/config.json
+4026532788 mnt         1  1865 65532            /coredns -conf /etc/coredns/Corefile
+4026532789 pid         1  1865 65532            /coredns -conf /etc/coredns/Corefile
+4026532790 cgroup      1  1865 65532            /coredns -conf /etc/coredns/Corefile
+4026532791 mnt         1  1898 rouls            /metrics-server --cert-dir=/tmp --secure-port=10250 --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --kubelet-use-node-status-port --metric-reso
+4026532792 pid         1  1898 rouls            /metrics-server --cert-dir=/tmp --secure-port=10250 --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --kubelet-use-node-status-port --metric-reso
+4026532793 cgroup      1  1898 rouls            /metrics-server --cert-dir=/tmp --secure-port=10250 --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname --kubelet-use-node-status-port --metric-reso
+root@dakube:~#
+
+# docker run -d --name test alpine sleep 300
+bf5bc826b382f0138b98d639d728258357513b2c07d6bc5e30f95fb97c327b29
+root@dakube:~#
+root@dakube:~# docker exec -it test sh
+/ # touch /hello-from-container
+/ # exit
+root@dakube:~# ls /hello-from-container
+/hello-from-container
+root@dakube:~# ls /
+bin  boot  dev  etc  hello-from-container  home  initrd.img  initrd.img.old  lib  lost+found  media  mnt  opt  proc  root  run  sbin  srv  swapfile  sys  tmp  usr  var  vmlinuz  vmlinuz.old
+root@dakube:~# docker rm -f test 2>/dev/null
+test
+root@dakube:~# rm -f /hello-from-container
+root@dakube:~# ls /hello-from-container
+ls: cannot access '/hello-from-container': No such file or directory
+root@dakube:~# docker run -d --name test alpine sleep 300
+94d56d10bafe7212ff8855a54144c79d48be6aee939fef62b192d387064406b6
+root@dakube:~# docker exec -it test sh
+/ # touch /hello-from-container
+/ # ls /
+bin                   etc                   home                  media                 opt                   root                  sbin                  sys                   usr
+dev                   hello-from-container  lib                   mnt                   proc                  run                   srv                   tmp                   var
+/ # exit
+root@dakube:~# ls /hello-from-container
+ls: cannot access '/hello-from-container': No such file or directory
+root@dakube:~#
+root@dakube:~# docker inspect test | grep UpperDir
+                "UpperDir": "/var/lib/docker/overlay2/11b89d60a2785bf53443b666bf162d554b06df4134885fc54de02f978eaf5c71/diff",
+root@dakube:~# ls /var/lib/docker/overlay2/11b89d60a2785bf53443b666bf162d554b06df4134885fc54de02f978eaf5c71/diff
+hello-from-container  root
+root@dakube:~#
+
+root@dakube:~# ip addr show docker0
+4: docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 02:42:d9:00:ff:3c brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::42:d9ff:fe00:ff3c/64 scope link
+       valid_lft forever preferred_lft forever
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# ip route | grep docker0
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1
+root@dakube:~# docker run -d --name nettest alpine sleep 600
+47a619dd88cf1a62619773fca66fc2658df03345f930fc972e4c3876912a87c4
+root@dakube:~# docker inspect nettest | grep -A 5 NetworkSettings
+        "NetworkSettings": {
+            "SandboxID": "08bf462e5c3d6e02a5e16e40749dccdd15eeffe57ffc1448ac87b18c944050da",
+            "SandboxKey": "/var/run/docker/netns/08bf462e5c3d",
+            "Ports": {},
+            "Networks": {
+                "bridge": {
+root@dakube:~# docker inspect nettest | grep 172.17
+                    "Gateway": "172.17.0.1",
+                    "IPAddress": "172.17.0.3",
+root@dakube:~# ip link|grep veth
+7: vethdab01af8@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP mode DEFAULT group default qlen 1000
+8: veth754519be@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP mode DEFAULT group default qlen 1000
+9: vethcefaeded@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP mode DEFAULT group default qlen 1000
+20: vethe804761@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP mode DEFAULT group default
+21: vethd9af464@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master docker0 state UP mode DEFAULT group default
+root@dakube:~# docker exec nettest ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0@if21: <BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN> mtu 1500 qdisc noqueue state UP
+    link/ether 0e:6f:a8:27:48:25 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.3/16 brd 172.17.255.255 scope global eth0
+       valid_lft forever preferred_lft forever
+root@dakube:~# ping -c 3 172.17.0.2
+PING 172.17.0.2 (172.17.0.2) 56(84) bytes of data.
+From 172.17.0.1 icmp_seq=1 Destination Host Unreachable
+From 172.17.0.1 icmp_seq=2 Destination Host Unreachable
+From 172.17.0.1 icmp_seq=3 Destination Host Unreachable
+
+--- 172.17.0.2 ping statistics ---
+3 packets transmitted, 0 received, +3 errors, 100% packet loss, time 2055ms
+pipe 3
+root@dakube:~# ping -c 3 172.17.0.2cc^C
+root@dakube:~# docker exec -it nettest sh
+/ # ping -c 3 172.17.0.1
+PING 172.17.0.1 (172.17.0.1): 56 data bytes
+64 bytes from 172.17.0.1: seq=0 ttl=64 time=0.453 ms
+64 bytes from 172.17.0.1: seq=1 ttl=64 time=0.310 ms
+^C
+--- 172.17.0.1 ping statistics ---
+2 packets transmitted, 2 packets received, 0% packet loss
+round-trip min/avg/max = 0.310/0.381/0.453 ms
+/ # exit
+root@dakube:~# docker exec -it nettest sh
+/ # apk add --no-cache curl
+( 1/10) Installing brotli-libs (1.2.0-r0)
+( 2/10) Installing c-ares (1.34.6-r0)
+( 3/10) Installing libunistring (1.4.1-r0)
+( 4/10) Installing libidn2 (2.3.8-r0)
+( 5/10) Installing nghttp2-libs (1.68.0-r0)
+( 6/10) Installing nghttp3 (1.13.1-r0)
+( 7/10) Installing libpsl (0.21.5-r3)
+( 8/10) Installing zstd-libs (1.5.7-r2)
+( 9/10) Installing libcurl (8.17.0-r1)
+(10/10) Installing curl (8.17.0-r1)
+Executing busybox-1.37.0-r30.trigger
+OK: 13.6 MiB in 26 packages
+/ # curl -I https://google.com
+HTTP/2 301
+location: https://www.google.com/
+content-type: text/html; charset=UTF-8
+content-security-policy-report-only: object-src 'none';base-uri 'self';script-src 'nonce-TQfETIlCxyAltdcRV49-6A' 'strict-dynamic' 'report-sample' 'unsafe-eval' 'unsafe-inline' https: http:;report-uri https://csp.withgoogle.com/csp/gws/other-hp
+date: Sat, 10 Jan 2026 21:57:13 GMT
+expires: Mon, 09 Feb 2026 21:57:13 GMT
+cache-control: public, max-age=2592000
+server: gws
+content-length: 220
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+/ # exit
+root@dakube:~# iptables -t nat -L -n -v | grep docker
+    4   267 MASQUERADE  0    --  *      !docker0  172.17.0.0/16        0.0.0.0/0
 
