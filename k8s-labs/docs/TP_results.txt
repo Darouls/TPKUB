@@ -1,0 +1,498 @@
+TP2
+
+root@dakube:~# uname -a
+Linux dakube 6.1.0-41-arm64 #1 SMP Debian 6.1.158-1 (2025-11-09) aarch64 GNU/Linux
+root@dakube:~# lsb_release -a||cat /etc/os-release
+-bash: lsb_release: command not found
+PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
+VERSION_CODENAME=bookworm
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+root@dakube:~# free -h
+               total        used        free      shared  buff/cache   available
+Mem:           1.8Gi       753Mi       566Mi       1.3Mi       662Mi       1.1Gi
+Swap:          2.0Gi          0B       2.0Gi
+root@dakube:~# df -h /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p2   59G  7.1G   49G  13% /
+root@dakube:~# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether dc:a6:32:29:12:36 brd ff:ff:ff:ff:ff:ff
+    altname end0
+    inet 192.168.1.5/24 brd 192.168.1.255 scope global dynamic eth0
+       valid_lft 39341sec preferred_lft 39341sec
+    inet6 2a01:e0a:f7c:44e0:dea6:32ff:fe29:1236/64 scope global dynamic mngtmpaddr
+       valid_lft 86074sec preferred_lft 86074sec
+    inet6 fe80::dea6:32ff:fe29:1236/64 scope link
+       valid_lft forever preferred_lft forever
+3: wlan0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether dc:a6:32:29:12:37 brd ff:ff:ff:ff:ff:ff
+4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether 02:42:a5:0a:b5:7e brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN group default
+    link/ether 2e:08:f1:66:11:81 brd ff:ff:ff:ff:ff:ff
+    inet 10.42.1.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::2c08:f1ff:fe66:1181/64 scope link
+       valid_lft forever preferred_lft forever
+6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether 0a:03:a8:99:d6:ff brd ff:ff:ff:ff:ff:ff
+    inet 10.42.1.1/24 brd 10.42.1.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::803:a8ff:fe99:d6ff/64 scope link
+       valid_lft forever preferred_lft forever
+7: vetha1f495a9@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default qlen 1000
+    link/ether ea:24:ea:9a:6a:9a brd ff:ff:ff:ff:ff:ff link-netns cni-8d39ce74-83c6-d2e3-b531-fcdc4eb5085d
+    inet6 fe80::e824:eaff:fe9a:6a9a/64 scope link
+       valid_lft forever preferred_lft forever
+8: vethb6bd0997@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default qlen 1000
+    link/ether 6a:c6:75:aa:48:31 brd ff:ff:ff:ff:ff:ff link-netns cni-b6256a50-49d7-efdc-80d4-d91daab54ae5
+    inet6 fe80::68c6:75ff:feaa:4831/64 scope link
+       valid_lft forever preferred_lft forever
+9: vethd1543197@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default qlen 1000
+    link/ether 3e:bb:b1:f8:a0:fe brd ff:ff:ff:ff:ff:ff link-netns cni-df0090a1-9d1a-c09e-5f92-d4a8b22eea3c
+    inet6 fe80::3cbb:b1ff:fef8:a0fe/64 scope link
+       valid_lft forever preferred_lft forever
+
+root@dakube:~# apt update
+Hit:1 http://download.proxmox.com/debian/pve bookworm InRelease
+Hit:2 http://deb.debian.org/debian bookworm InRelease
+Get:3 http://security.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+Get:4 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+Get:5 http://security.debian.org/debian-security bookworm-security/main arm64 Packages [286 kB]
+Fetched 389 kB in 2s (219 kB/s)
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+All packages are up to date.
+root@dakube:~# apt full-upgrade -y
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Calculating upgrade... Done
+The following packages were automatically installed and are no longer required:
+  libglib2.0-0 libglib2.0-data libicu72 libxml2 shared-mime-info wmdocker xdg-user-dirs
+Use 'apt autoremove' to remove them.
+The following packages will be REMOVED:
+  linux-image-6.1.0-13-arm64 linux-image-6.1.0-32-arm64
+0 upgraded, 0 newly installed, 2 to remove and 0 not upgraded.
+After this operation, 712 MB disk space will be freed.
+(Reading database ... 44074 files and directories currently installed.)
+Removing linux-image-6.1.0-13-arm64 (6.1.55-1) ...
+/etc/kernel/postrm.d/initramfs-tools:
+update-initramfs: Deleting /boot/initrd.img-6.1.0-13-arm64
+/etc/kernel/postrm.d/z50-raspi-firmware:
+raspi-firmware: deleting obsolete /boot/firmware/vmlinuz-6.1.0-13-arm64 (no longer in /boot)
+raspi-firmware: deleting obsolete /boot/firmware/initrd.img-6.1.0-13-arm64 (no longer in /boot)
+Removing linux-image-6.1.0-32-arm64 (6.1.129-1) ...
+/etc/kernel/postrm.d/initramfs-tools:
+update-initramfs: Deleting /boot/initrd.img-6.1.0-32-arm64
+/etc/kernel/postrm.d/z50-raspi-firmware:
+raspi-firmware: deleting obsolete /boot/firmware/vmlinuz-6.1.0-32-arm64 (no longer in /boot)
+raspi-firmware: deleting obsolete /boot/firmware/initrd.img-6.1.0-32-arm64 (no longer in /boot)
+
+# swapon --show
+NAME      TYPE SIZE USED PRIO
+/swapfile file   2G   0B   -2
+
+# cat /etc/fstab
+# The root file system has fs_passno=1 as per fstab(5) for automatic fsck.
+LABEL=RASPIROOT / ext4 rw 0 1
+# All other file systems have fs_passno=2 as per fstab(5) for automatic fsck.
+LABEL=RASPIFIRM /boot/firmware vfat rw 0 2
+#/swapfile none swap sw 0 0
+dabox:/volume1/KubeData /mnt/nfs/k3s nfs defaults 0 0
+
+# cat /boot/cmdline.txt
+cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1
+
+# grep cgroup /boot/cmdline.txt
+cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1
+root@dakube:~# grep cgroup /proc/cmdline
+root@dakube:~#
+
+root@dakube:~# curl -fsSL https://get.docker.com | sh
+# Executing docker install script, commit: f381ee68b32e515bb4dc034b339266aff1fbc460
+Warning: the "docker" command appears to already exist on this system.
+
+If you already have Docker installed, this script can cause trouble, which is
+why we're displaying this warning and provide the opportunity to cancel the
+installation.
+
+If you installed the current Docker package using this script and are using it
+again to update Docker, you can ignore this message, but be aware that the
+script resets any custom changes in the deb and rpm repo configuration
+files to match the parameters passed to the script.
+
+You may press Ctrl+C now to abort this script.
++ sleep 20
++ sh -c apt-get -qq update >/dev/null
++ sh -c DEBIAN_FRONTEND=noninteractive apt-get -y -qq install ca-certificates curl >/dev/null
++ sh -c install -m 0755 -d /etc/apt/keyrings
++ sh -c curl -fsSL "https://download.docker.com/linux/debian/gpg" -o /etc/apt/keyrings/docker.asc
++ sh -c chmod a+r /etc/apt/keyrings/docker.asc
++ sh -c echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" > /etc/apt/sources.list.d/docker.list
++ sh -c apt-get -qq update >/dev/null
++ sh -c DEBIAN_FRONTEND=noninteractive apt-get -y -qq install docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-ce-rootless-extras docker-buildx-plugin docker-model-plugin >/dev/null
+Scanning processes...
+Scanning processor microcode...
+Scanning linux images...
+Using systemd to manage Docker service
++ sh -c systemctl enable --now docker.service
+  UNIT                                           LOAD   ACTIVE SUB       DESCRIPTION
+  proc-sys-fs-binfmt_misc.automount              loaded active running   Arbitrary Executable File Formats File System …
+  sys-devices-platform-emmc2bus-fe340000.mmc-mm… loaded active plugged   /sys/devices/platform/emmc2bus/fe340000.mmc/mm…
+  sys-devices-platform-emmc2bus-fe340000.mmc-mm… loaded active plugged   /sys/devices/platform/emmc2bus/fe340000.mmc/mm…
+  sys-devices-platform-emmc2bus-fe340000.mmc-mm… loaded active plugged   /sys/devices/platform/emmc2bus/fe340000.mmc/mm…
+  sys-devices-platform-scb-fd580000.ethernet-ne… loaded active plugged   /sys/devices/platform/scb/fd580000.ethernet/ne…
+  sys-devices-platform-scb-fd580000.ethernet-un… loaded active plugged   /sys/devices/platform/scb/fd580000.ethernet/un…
+  sys-devices-platform-soc-fe00b840.mailbox-bcm… loaded active plugged   /sys/devices/platform/soc/fe00b840.mailbox/bcm…
+  sys-devices-platform-soc-fe201000.serial-seri… loaded active plugged   /sys/devices/platform/soc/fe201000.serial/seri…
+  sys-devices-platform-soc-fe215040.serial-tty-… loaded active plugged   /sys/devices/platform/soc/fe215040.serial/tty/…
+  sys-devices-platform-soc-fe300000.mmc-mmc_hos… loaded active plugged   /sys/devices/platform/soc/fe300000.mmc/mmc_hos…
+  sys-devices-platform-soc-fe980000.usb-udc-fe9… loaded active plugged   /sys/devices/platform/soc/fe980000.usb/udc/fe9…
+  sys-devices-platform-soc-fef00700.hdmi-sound-… loaded active plugged   /sys/devices/platform/soc/fef00700.hdmi/sound/…
+  sys-devices-platform-soc-fef05700.hdmi-sound-… loaded active plugged   /sys/devices/platform/soc/fef05700.hdmi/sound/…
+  sys-devices-virtual-misc-rfkill.device         loaded active plugged   /sys/devices/virtual/misc/rfkill
+  sys-devices-virtual-net-cni0.device            loaded active plugged   /sys/devices/virtual/net/cni0
+  sys-devices-virtual-net-docker0.device         loaded active plugged   /sys/devices/virtual/net/docker0
+  sys-devices-virtual-net-flannel.1.device       loaded active plugged   /sys/devices/virtual/net/flannel.1
+  sys-devices-virtual-net-veth754519be.device    loaded active plugged   /sys/devices/virtual/net/veth754519be
+  sys-devices-virtual-net-vethcefaeded.device    loaded active plugged   /sys/devices/virtual/net/vethcefaeded
+  sys-devices-virtual-net-vethdab01af8.device    loaded active plugged   /sys/devices/virtual/net/vethdab01af8
+  sys-module-configfs.device                     loaded active plugged   /sys/module/configfs
+  sys-module-fuse.device                         loaded active plugged   /sys/module/fuse
+  sys-subsystem-bluetooth-devices-hci0.device    loaded active plugged   /sys/subsystem/bluetooth/devices/hci0
+  sys-subsystem-net-devices-cni0.device          loaded active plugged   /sys/subsystem/net/devices/cni0
+  sys-subsystem-net-devices-docker0.device       loaded active plugged   /sys/subsystem/net/devices/docker0
+  sys-subsystem-net-devices-eth0.device          loaded active plugged   /sys/subsystem/net/devices/eth0
+  sys-subsystem-net-devices-flannel.1.device     loaded active plugged   /sys/subsystem/net/devices/flannel.1
+  sys-subsystem-net-devices-veth754519be.device  loaded active plugged   /sys/subsystem/net/devices/veth754519be
+  sys-subsystem-net-devices-vethcefaeded.device  loaded active plugged   /sys/subsystem/net/devices/vethcefaeded
+  sys-subsystem-net-devices-vethdab01af8.device  loaded active plugged   /sys/subsystem/net/devices/vethdab01af8
+  sys-subsystem-net-devices-wlan0.device         loaded active plugged   /sys/subsystem/net/devices/wlan0
+  -.mount                                        loaded active mounted   Root Mount
+  boot-firmware.mount                            loaded active mounted   /boot/firmware
+  dev-hugepages.mount                            loaded active mounted   Huge Pages File System
+  dev-mqueue.mount                               loaded active mounted   POSIX Message Queue File System
+  mnt-nfs-k3s.mount                              loaded active mounted   /mnt/nfs/k3s
+  proc-sys-fs-binfmt_misc.mount                  loaded active mounted   Arbitrary Executable File Formats File System
+  run-credentials-systemd\x2dsysctl.service.mou… loaded active mounted   /run/credentials/systemd-sysctl.service
+  run-credentials-systemd\x2dsysusers.service.m… loaded active mounted   /run/credentials/systemd-sysusers.service
+  run-credentials-systemd\x2dtmpfiles\x2dsetup.… loaded active mounted   /run/credentials/systemd-tmpfiles-setup.service
+  run-credentials-systemd\x2dtmpfiles\x2dsetup\… loaded active mounted   /run/credentials/systemd-tmpfiles-setup-dev.se…
+  run-k3s-containerd-io.containerd.grpc.v1.cri-… loaded active mounted   /run/k3s/containerd/io.containerd.grpc.v1.cri/…
+  run-k3s-containerd-io.containerd.grpc.v1.cri-… loaded active mounted   /run/k3s/containerd/io.containerd.grpc.v1.cri/…
+  run-k3s-containerd-io.containerd.grpc.v1.cri-… loaded active mounted   /run/k3s/containerd/io.containerd.grpc.v1.cri/…
+  run-k3s-containerd-io.containerd.runtime.v2.t… loaded active mounted   /run/k3s/containerd/io.containerd.runtime.v2.t…
+  run-k3s-containerd-io.containerd.runtime.v2.t… loaded active mounted   /run/k3s/containerd/io.containerd.runtime.v2.t…
+  run-k3s-containerd-io.containerd.runtime.v2.t… loaded active mounted   /run/k3s/containerd/io.containerd.runtime.v2.t…
+  run-k3s-containerd-io.containerd.runtime.v2.t… loaded active mounted   /run/k3s/containerd/io.containerd.runtime.v2.t…
+  run-k3s-containerd-io.containerd.runtime.v2.t… loaded active mounted   /run/k3s/containerd/io.containerd.runtime.v2.t…
+  run-k3s-containerd-io.containerd.runtime.v2.t… loaded active mounted   /run/k3s/containerd/io.containerd.runtime.v2.t…
+  run-netns-cni\x2d23d10938\x2d359e\x2df55e\x2d… loaded active mounted   /run/netns/cni-23d10938-359e-f55e-3d0a-9c53be5…
+  run-netns-cni\x2d6a191c47\x2d1d2c\x2d95a3\x2d… loaded active mounted   /run/netns/cni-6a191c47-1d2c-95a3-b566-7b446dd…
+  run-netns-cni\x2d7753d4cb\x2d5b8d\x2d531b\x2d… loaded active mounted   /run/netns/cni-7753d4cb-5b8d-531b-8ff2-2c54c0c…
+  run-rpc_pipefs.mount                           loaded active mounted   RPC Pipe File System
+  run-user-1000.mount                            loaded active mounted   /run/user/1000
+  sys-fs-fuse-connections.mount                  loaded active mounted   FUSE Control File System
+  sys-kernel-config.mount                        loaded active mounted   Kernel Configuration File System
+  sys-kernel-debug.mount                         loaded active mounted   Kernel Debug File System
+  sys-kernel-tracing.mount                       loaded active mounted   Kernel Trace File System
+  var-lib-kubelet-pods-2c5d91bf\x2d4a9e\x2d46f3… loaded active mounted   /var/lib/kubelet/pods/2c5d91bf-4a9e-46f3-9cca-…
+  var-lib-kubelet-pods-7a21603a\x2da8bd\x2d4827… loaded active mounted   /var/lib/kubelet/pods/7a21603a-a8bd-4827-b9de-…
+  var-lib-kubelet-pods-b1108a4a\x2deb98\x2d4ca7… loaded active mounted   /var/lib/kubelet/pods/b1108a4a-eb98-4ca7-be9d-…
+  systemd-ask-password-console.path              loaded active waiting   Dispatch Password Requests to Console Director…
+  systemd-ask-password-wall.path                 loaded active waiting   Forward Password Requests to Wall Directory Wa…
+  cri-containerd-015838bf7505a8fc1ec5873f5adbd5… loaded active running   libcontainer container 015838bf7505a8fc1ec5873…
+  cri-containerd-04be514b59948773f8928875936355… loaded active running   libcontainer container 04be514b59948773f892887…
+  cri-containerd-b290cc0adf7a1eb0d5d75827ebab7f… loaded active running   libcontainer container b290cc0adf7a1eb0d5d7582…
+  cri-containerd-ca85e3604a62432729232cea44ab9a… loaded active running   libcontainer container ca85e3604a62432729232ce…
+  cri-containerd-caeb80c03a1dd9cd1dc9ecbc64a01f… loaded active running   libcontainer container caeb80c03a1dd9cd1dc9ecb…
+  cri-containerd-fc12a95b7bbf4ca94fdf3ad99ccb17… loaded active running   libcontainer container fc12a95b7bbf4ca94fdf3ad…
+  init.scope                                     loaded active running   System and Service Manager
+  session-1.scope                                loaded active running   Session 1 of User rouls
+  apparmor.service                               loaded active exited    Load AppArmor profiles
+  console-setup.service                          loaded active exited    Set console font and keymap
+  containerd.service                             loaded active running   containerd container runtime
+  cron.service                                   loaded active running   Regular background program processing daemon
+  dbus.service                                   loaded active running   D-Bus System Message Bus
+  docker.service                                 loaded active running   Docker Application Container Engine
+  getty@tty1.service                             loaded active running   Getty on tty1
+  ifupdown-pre.service                           loaded active exited    Helper to synchronize boot up for ifupdown
+  k3s.service                                    loaded active running   Lightweight Kubernetes
+  keyboard-setup.service                         loaded active exited    Set the console keyboard layout
+  kmod-static-nodes.service                      loaded active exited    Create List of Static Device Nodes
+  networking.service                             loaded active exited    Raise network interfaces
+  rpc-statd-notify.service                       loaded active exited    Notify NFS peers of a restart
+  rpcbind.service                                loaded active running   RPC bind portmap service
+  serial-getty@ttyS1.service                     loaded active running   Serial Getty on ttyS1
+  ssh.service                                    loaded active running   OpenBSD Secure Shell server
+  systemd-binfmt.service                         loaded active exited    Set Up Additional Binary Formats
+  systemd-fsck@dev-disk-by\x2dlabel-RASPIFIRM.s… loaded active exited    File System Check on /dev/disk/by-label/RASPIF…
+  systemd-journal-flush.service                  loaded active exited    Flush Journal to Persistent Storage
+  systemd-journald.service                       loaded active running   Journal Service
+  systemd-logind.service                         loaded active running   User Login Management
+  systemd-modules-load.service                   loaded active exited    Load Kernel Modules
+  systemd-random-seed.service                    loaded active exited    Load/Save Random Seed
+  systemd-remount-fs.service                     loaded active exited    Remount Root and Kernel File Systems
+  systemd-sysctl.service                         loaded active exited    Apply Kernel Variables
+  systemd-sysusers.service                       loaded active exited    Create System Users
+  systemd-timesyncd.service                      loaded active running   Network Time Synchronization
+  systemd-tmpfiles-setup-dev.service             loaded active exited    Create Static Device Nodes in /dev
+  systemd-tmpfiles-setup.service                 loaded active exited    Create System Files and Directories
+  systemd-udev-trigger.service                   loaded active exited    Coldplug All udev Devices
+  systemd-udevd.service                          loaded active running   Rule-based Manager for Device Events and Files
+  systemd-update-utmp.service                    loaded active exited    Record System Boot/Shutdown in UTMP
+  systemd-user-sessions.service                  loaded active exited    Permit User Sessions
+  user-runtime-dir@1000.service                  loaded active exited    User Runtime Directory /run/user/1000
+  user@1000.service                              loaded active running   User Manager for UID 1000
+  wpa_supplicant.service                         loaded active running   WPA supplicant
+  -.slice                                        loaded active active    Root Slice
+  kubepods-besteffort-pod7a21603a_a8bd_4827_b9d… loaded active active    libcontainer container kubepods-besteffort-pod…
+  kubepods-besteffort.slice                      loaded active active    libcontainer container kubepods-besteffort.sli…
+  kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca… loaded active active    libcontainer container kubepods-burstable-pod2…
+  kubepods-burstable-podb1108a4a_eb98_4ca7_be9d… loaded active active    libcontainer container kubepods-burstable-podb…
+  kubepods-burstable.slice                       loaded active active    libcontainer container kubepods-burstable.slice
+  kubepods.slice                                 loaded active active    libcontainer container kubepods.slice
+  system-getty.slice                             loaded active active    Slice /system/getty
+  system-modprobe.slice                          loaded active active    Slice /system/modprobe
+  system-serial\x2dgetty.slice                   loaded active active    Slice /system/serial-getty
+  system-systemd\x2dfsck.slice                   loaded active active    Slice /system/systemd-fsck
+  system.slice                                   loaded active active    System Slice
+  user-1000.slice                                loaded active active    User Slice of UID 1000
+  user.slice                                     loaded active active    User and Session Slice
+  dbus.socket                                    loaded active running   D-Bus System Message Bus Socket
+  docker.socket                                  loaded active running   Docker Socket for the API
+  rpcbind.socket                                 loaded active running   RPCbind Server Activation Socket
+  systemd-fsckd.socket                           loaded active listening fsck to fsckd communication Socket
+  systemd-initctl.socket                         loaded active listening initctl Compatibility Named Pipe
+  systemd-journald-audit.socket                  loaded active running   Journal Audit Socket
+  systemd-journald-dev-log.socket                loaded active running   Journal Socket (/dev/log)
+  systemd-journald.socket                        loaded active running   Journal Socket
+  systemd-rfkill.socket                          loaded active listening Load/Save RF Kill Switch Status /dev/rfkill Wa…
+  systemd-udevd-control.socket                   loaded active running   udev Control Socket
+  systemd-udevd-kernel.socket                    loaded active running   udev Kernel Socket
+  basic.target                                   loaded active active    Basic System
+  bluetooth.target                               loaded active active    Bluetooth Support
+  cryptsetup.target                              loaded active active    Local Encrypted Volumes
+  getty.target                                   loaded active active    Login Prompts
+  graphical.target                               loaded active active    Graphical Interface
+  integritysetup.target                          loaded active active    Local Integrity Protected Volumes
+  local-fs-pre.target                            loaded active active    Preparation for Local File Systems
+  local-fs.target                                loaded active active    Local File Systems
+  multi-user.target                              loaded active active    Multi-User System
+  network-online.target                          loaded active active    Network is Online
+  network.target                                 loaded active active    Network
+  nfs-client.target                              loaded active active    NFS client services
+  paths.target                                   loaded active active    Path Units
+  remote-fs-pre.target                           loaded active active    Preparation for Remote File Systems
+  remote-fs.target                               loaded active active    Remote File Systems
+  rpc_pipefs.target                              loaded active active    rpc_pipefs.target
+  rpcbind.target                                 loaded active active    RPC Port Mapper
+  slices.target                                  loaded active active    Slice Units
+  sockets.target                                 loaded active active    Socket Units
+  sound.target                                   loaded active active    Sound Card
+  swap.target                                    loaded active active    Swaps
+  sysinit.target                                 loaded active active    System Initialization
+  time-set.target                                loaded active active    System Time Set
+  timers.target                                  loaded active active    Timer Units
+  usb-gadget.target                              loaded active active    Hardware activated USB gadget
+  veritysetup.target                             loaded active active    Local Verity Protected Volumes
+  apt-daily-upgrade.timer                        loaded active waiting   Daily apt upgrade and clean activities
+  apt-daily.timer                                loaded active waiting   Daily apt download activities
+  dpkg-db-backup.timer                           loaded active waiting   Daily dpkg database backup timer
+  e2scrub_all.timer                              loaded active waiting   Periodic ext4 Online Metadata Check for All Fi…
+  fstrim.timer                                   loaded active waiting   Discard unused blocks once a week
+  logrotate.timer                                loaded active waiting   Daily rotation of log files
+  systemd-tmpfiles-clean.timer                   loaded active waiting   Daily Cleanup of Temporary Directories
+
+LOAD   = Reflects whether the unit definition was properly loaded.
+ACTIVE = The high-level unit activation state, i.e. generalization of SUB.
+SUB    = The low-level unit activation state, values depend on unit type.
+166 loaded units listed. Pass --all to see loaded but inactive units, too.
+To show all installed unit files use 'systemctl list-unit-files'.
+INFO: Docker daemon enabled and started
+
++ sh -c docker version
+Client: Docker Engine - Community
+ Version:           29.1.4
+ API version:       1.52
+ Go version:        go1.25.5
+ Git commit:        0e6fee6
+ Built:             Thu Jan  8 19:57:28 2026
+ OS/Arch:           linux/arm64
+ Context:           default
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          29.1.4
+  API version:      1.52 (minimum version 1.44)
+  Go version:       go1.25.5
+  Git commit:       08440b6
+  Built:            Thu Jan  8 19:57:28 2026
+  OS/Arch:          linux/arm64
+  Experimental:     false
+ containerd:
+  Version:          v2.2.1
+  GitCommit:        dea7da592f5d1d2b7755e3a161be07f43fad8f75
+ runc:
+  Version:          1.3.4
+  GitCommit:        v1.3.4-0-gd6d73eb8
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+
+================================================================================
+
+To run Docker as a non-privileged user, consider setting up the
+Docker daemon in rootless mode for your user:
+
+    dockerd-rootless-setuptool.sh install
+
+Visit https://docs.docker.com/go/rootless/ to learn about rootless mode.
+
+
+To run the Docker daemon as a fully privileged service, but granting non-root
+users access, refer to https://docs.docker.com/go/daemon-access/
+
+WARNING: Access to the remote API on a privileged Docker daemon is equivalent
+         to root access on the host. Refer to the 'Docker daemon attack surface'
+         documentation for details: https://docs.docker.com/go/attack-surface/
+
+================================================================================
+$ docker version
+Client: Docker Engine - Community
+ Version:           29.1.4
+ API version:       1.52
+ Go version:        go1.25.5
+ Git commit:        0e6fee6
+ Built:             Thu Jan  8 19:57:28 2026
+ OS/Arch:           linux/arm64
+ Context:           default
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          29.1.4
+  API version:      1.52 (minimum version 1.44)
+  Go version:       go1.25.5
+  Git commit:       08440b6
+  Built:            Thu Jan  8 19:57:28 2026
+  OS/Arch:          linux/arm64
+  Experimental:     false
+ containerd:
+  Version:          v2.2.1
+  GitCommit:        dea7da592f5d1d2b7755e3a161be07f43fad8f75
+ runc:
+  Version:          1.3.4
+  GitCommit:        v1.3.4-0-gd6d73eb8
+ docker-init:
+  Version:          0.19.0
+  GitCommit:        de40ad0
+$ docker run --rm hello-world
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (arm64v8)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+
+
+# ufw status
+Status: active
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW       Anywhere                  
+22/tcp (v6)                ALLOW       Anywhere (v6)         
+
+
+# docker info | grep -E 'Architecture|Cgroup'
+swapon --show
+ Cgroup Driver: systemd
+ Cgroup Version: 2
+ Architecture: aarch64
+
+TP2.5
+
+# ss -tulpn
+Netid        State         Recv-Q        Send-Q               Local Address:Port                Peer Address:Port       Process
+udp          UNCONN        0             0                          0.0.0.0:68                       0.0.0.0:*           users:(("dhclient",pid=530,fd=7))
+udp          UNCONN        0             0                          0.0.0.0:111                      0.0.0.0:*           users:(("rpcbind",pid=434,fd=5),("systemd",pid=1,fd=93))
+udp          UNCONN        0             0                          0.0.0.0:8472                     0.0.0.0:*
+udp          UNCONN        0             0                             [::]:111                         [::]:*           users:(("rpcbind",pid=434,fd=7),("systemd",pid=1,fd=96))
+tcp          LISTEN        0             4096                     127.0.0.1:10249                    0.0.0.0:*           users:(("k3s-server",pid=601,fd=217))
+tcp          LISTEN        0             4096                     127.0.0.1:10248                    0.0.0.0:*           users:(("k3s-server",pid=601,fd=236))
+tcp          LISTEN        0             4096                     127.0.0.1:10259                    0.0.0.0:*           users:(("k3s-server",pid=601,fd=226))
+tcp          LISTEN        0             4096                     127.0.0.1:10258                    0.0.0.0:*           users:(("k3s-server",pid=601,fd=181))
+tcp          LISTEN        0             4096                     127.0.0.1:10257                    0.0.0.0:*           users:(("k3s-server",pid=601,fd=268))
+tcp          LISTEN        0             4096                     127.0.0.1:10256                    0.0.0.0:*           users:(("k3s-server",pid=601,fd=213))
+tcp          LISTEN        0             4096                     127.0.0.1:6444                     0.0.0.0:*           users:(("k3s-server",pid=601,fd=17))
+tcp          LISTEN        0             64                         0.0.0.0:40995                    0.0.0.0:*
+tcp          LISTEN        0             128                        0.0.0.0:22                       0.0.0.0:*           users:(("sshd",pid=3783,fd=3))
+tcp          LISTEN        0             4096                       0.0.0.0:111                      0.0.0.0:*           users:(("rpcbind",pid=434,fd=4),("systemd",pid=1,fd=92))
+tcp          LISTEN        0             4096                     127.0.0.1:10010                    0.0.0.0:*           users:(("containerd",pid=817,fd=6))
+tcp          LISTEN        0             64                            [::]:37093                       [::]:*
+tcp          LISTEN        0             4096                             *:10255                          *:*           users:(("k3s-server",pid=601,fd=230))
+tcp          LISTEN        0             4096                             *:10250                          *:*           users:(("k3s-server",pid=601,fd=233))
+tcp          LISTEN        0             128                           [::]:22                          [::]:*           users:(("sshd",pid=3783,fd=4))
+tcp          LISTEN        0             4096                          [::]:111                         [::]:*           users:(("rpcbind",pid=434,fd=6),("systemd",pid=1,fd=94))
+tcp          LISTEN        0             4096                             *:6443                           *:*           users:(("k3s-server",pid=601,fd=13))
+root@dakube:~# aa-status
+apparmor module is loaded.
+9 profiles are loaded.
+9 profiles are in enforce mode.
+   /usr/lib/NetworkManager/nm-dhcp-client.action
+   /usr/lib/NetworkManager/nm-dhcp-helper
+   /usr/lib/connman/scripts/dhclient-script
+   /{,usr/}sbin/dhclient
+   cri-containerd.apparmor.d
+   docker-default
+   lsb_release
+   nvidia_modprobe
+   nvidia_modprobe//kmod
+0 profiles are in complain mode.
+0 profiles are in kill mode.
+0 profiles are in unconfined mode.
+4 processes have profiles defined.
+4 processes are in enforce mode.
+   /usr/sbin/dhclient (530) /{,usr/}sbin/dhclient
+   /usr/bin/local-path-provisioner (1857) cri-containerd.apparmor.d
+   /coredns (1865) cri-containerd.apparmor.d
+   /metrics-server (1898) cri-containerd.apparmor.d
+0 processes are in complain mode.
+0 processes are unconfined but have a profile defined.
+0 processes are in mixed mode.
+0 processes are in kill mode.
+
+
+
+
