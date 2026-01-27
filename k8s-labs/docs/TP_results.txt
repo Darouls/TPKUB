@@ -1079,3 +1079,1634 @@ alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
 root@dakube:~# iptables -t nat -L -n -v | grep docker
     4   267 MASQUERADE  0    --  *      !docker0  172.17.0.0/16        0.0.0.0/0
 
+
+TP 3.5
+
+# mount |grep cgroup
+cgroup2 on /sys/fs/cgroup type cgroup2 (rw,nosuid,nodev,noexec,relatime,nsdelegate,memory_recursiveprot)
+root@dakube:~# docker run -d --name stress alpine sleep 600
+19737b43efc314910772a54c2b2b6310604cac611d76d15d8df919677a52b447
+root@dakube:~# docker exec -it stress sh
+/ # apk add --no-cache stress-ng
+(1/5) Installing judy (1.0.5-r1)
+(2/5) Installing libmd (1.1.0-r0)
+(3/5) Installing libbsd (0.12.2-r0)
+(4/5) Installing liblksctp (1.0.19-r5)
+(5/5) Installing stress-ng (0.19.03-r0)
+Executing busybox-1.37.0-r30.trigger
+OK: 13.4 MiB in 21 packages
+/ # exit
+root@dakube:~# docker exec stress stress-ng --cpu 1 --timeout 30s
+stress-ng: info:  [16] setting to a 30 secs run per stressor
+stress-ng: info:  [16] dispatching hogs: 1 cpu
+
+stress-ng: info:  [16] skipped: 0
+stress-ng: info:  [16] passed: 1: cpu (1)
+stress-ng: info:  [16] failed: 0
+stress-ng: info:  [16] metrics untrustworthy: 0
+stress-ng: info:  [16] successful run completed in 30.13 secs
+root@dakube:~#
+root@dakube:~# docker exec stress stress-ng --cpu 1 --timeout 30s
+stress-ng: info:  [23] setting to a 30 secs run per stressor
+stress-ng: info:  [23] dispatching hogs: 1 cpu
+stress-ng: info:  [23] skipped: 0
+stress-ng: info:  [23] passed: 1: cpu (1)
+stress-ng: info:  [23] failed: 0
+stress-ng: info:  [23] metrics untrustworthy: 0
+stress-ng: info:  [23] successful run completed in 30.06 secs
+root@dakube:~# docker rm -f stress
+stress
+root@dakube:~# docker run -d \
+  --name stress \
+  --cpus="0.5" \
+  alpine sleep 600
+8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED         STATUS         PORTS     NAMES
+8b76b82f2d27   alpine    "sleep 600"   6 seconds ago   Up 6 seconds             stress
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# docker exec -it stress sh
+/ # apk add --no-cache stress-ng
+(1/5) Installing judy (1.0.5-r1)
+(2/5) Installing libmd (1.1.0-r0)
+(3/5) Installing libbsd (0.12.2-r0)
+(4/5) Installing liblksctp (1.0.19-r5)
+(5/5) Installing stress-ng (0.19.03-r0)
+Executing busybox-1.37.0-r30.trigger
+OK: 13.4 MiB in 21 packages
+/ # stress-ng --cpu 1 --timeout 30s
+stress-ng: info:  [16] setting to a 30 secs run per stressor
+stress-ng: info:  [16] dispatching hogs: 1 cpu
+stress-ng: info:  [16] skipped: 0
+stress-ng: info:  [16] passed: 1: cpu (1)
+stress-ng: info:  [16] failed: 0
+stress-ng: info:  [16] metrics untrustworthy: 0
+stress-ng: info:  [16] successful run completed in 30.05 secs
+/ # exit
+root@dakube:~# docker inspect --format '{{.Id}}' stress
+8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326
+root@dakube:~# cd /sys/fs/cgroup
+grep stress -R .
+grep: ./sys-fs-fuse-connections.mount/cgroup.kill: Invalid argument
+grep: ./sys-fs-fuse-connections.mount/memory.reclaim: Invalid argument
+grep: ./sys-kernel-config.mount/cgroup.kill: Invalid argument
+grep: ./sys-kernel-config.mount/memory.reclaim: Invalid argument
+grep: ./sys-kernel-debug.mount/cgroup.kill: Invalid argument
+grep: ./sys-kernel-debug.mount/memory.reclaim: Invalid argument
+grep: ./dev-mqueue.mount/cgroup.kill: Invalid argument
+grep: ./dev-mqueue.mount/memory.reclaim: Invalid argument
+grep: ./user.slice/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/app.slice/dbus.socket/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/app.slice/dbus.socket/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/app.slice/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/app.slice/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/init.scope/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/init.scope/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/session-3.scope/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/session-3.scope/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/session-1.scope/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/session-1.scope/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/memory.reclaim: Invalid argument
+grep: ./user.slice/memory.reclaim: Invalid argument
+grep: ./sys-kernel-tracing.mount/cgroup.kill: Invalid argument
+grep: ./sys-kernel-tracing.mount/memory.reclaim: Invalid argument
+grep: ./init.scope/cgroup.kill: Invalid argument
+grep: ./init.scope/memory.reclaim: Invalid argument
+grep: ./system.slice/system-systemd\x2dfsck.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/system-systemd\x2dfsck.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/containerd.service/cgroup.kill: Invalid argument
+grep: ./system.slice/containerd.service/memory.reclaim: Invalid argument
+grep: ./system.slice/systemd-udevd.service/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-udevd.service/udev/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-udevd.service/memory.reclaim: Invalid argument
+grep: ./system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope/cgroup.kill: Invalid argument
+grep: ./system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope/memory.reclaim: Invalid argument
+grep: ./system.slice/cron.service/cgroup.kill: Invalid argument
+grep: ./system.slice/cron.service/memory.reclaim: Invalid argument
+grep: ./system.slice/system-serial\x2dgetty.slice/serial-getty@ttyS1.service/cgroup.kill: Invalid argument
+grep: ./system.slice/system-serial\x2dgetty.slice/serial-getty@ttyS1.service/memory.reclaim: Invalid argument
+grep: ./system.slice/system-serial\x2dgetty.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/system-serial\x2dgetty.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/networking.service/cgroup.kill: Invalid argument
+grep: ./system.slice/networking.service/memory.reclaim: Invalid argument
+grep: ./system.slice/docker.service/cgroup.kill: Invalid argument
+grep: ./system.slice/docker.service/memory.reclaim: Invalid argument
+grep: ./system.slice/rpcbind.socket/cgroup.kill: Invalid argument
+grep: ./system.slice/rpcbind.socket/memory.reclaim: Invalid argument
+grep: ./system.slice/system-modprobe.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/system-modprobe.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/systemd-journald.service/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-journald.service/memory.reclaim: Invalid argument
+grep: ./system.slice/ssh.service/cgroup.kill: Invalid argument
+grep: ./system.slice/ssh.service/memory.reclaim: Invalid argument
+grep: ./system.slice/boot-firmware.mount/cgroup.kill: Invalid argument
+grep: ./system.slice/boot-firmware.mount/memory.reclaim: Invalid argument
+grep: ./system.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/rpcbind.service/cgroup.kill: Invalid argument
+grep: ./system.slice/rpcbind.service/memory.reclaim: Invalid argument
+grep: ./system.slice/k3s.service/cgroup.kill: Invalid argument
+grep: ./system.slice/k3s.service/memory.reclaim: Invalid argument
+grep: ./system.slice/run-rpc_pipefs.mount/cgroup.kill: Invalid argument
+grep: ./system.slice/run-rpc_pipefs.mount/memory.reclaim: Invalid argument
+grep: ./system.slice/docker.socket/cgroup.kill: Invalid argument
+grep: ./system.slice/docker.socket/memory.reclaim: Invalid argument
+grep: ./system.slice/mnt-nfs-k3s.mount/cgroup.kill: Invalid argument
+grep: ./system.slice/mnt-nfs-k3s.mount/memory.reclaim: Invalid argument
+grep: ./system.slice/dbus.service/cgroup.kill: Invalid argument
+grep: ./system.slice/dbus.service/memory.reclaim: Invalid argument
+grep: ./system.slice/systemd-timesyncd.service/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-timesyncd.service/memory.reclaim: Invalid argument
+grep: ./system.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/system-getty.slice/getty@tty1.service/cgroup.kill: Invalid argument
+grep: ./system.slice/system-getty.slice/getty@tty1.service/memory.reclaim: Invalid argument
+grep: ./system.slice/system-getty.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/system-getty.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/systemd-logind.service/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-logind.service/memory.reclaim: Invalid argument
+grep: ./proc-sys-fs-binfmt_misc.mount/cgroup.kill: Invalid argument
+grep: ./proc-sys-fs-binfmt_misc.mount/memory.reclaim: Invalid argument
+grep: ./dev-hugepages.mount/cgroup.kill: Invalid argument
+grep: ./dev-hugepages.mount/memory.reclaim: Invalid argument
+grep: ./memory.reclaim: Invalid argument
+grep: ./kubepods.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cri-containerd-c87d14c58072fb44a1934961a1a8d31238fe10c266ae89609e0a852c2002fcd8.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cri-containerd-c87d14c58072fb44a1934961a1a8d31238fe10c266ae89609e0a852c2002fcd8.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cri-containerd-9e91a6f0317dba25e79f77099f0583968fbcc7887d9611ff8525c899cdb370a4.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cri-containerd-9e91a6f0317dba25e79f77099f0583968fbcc7887d9611ff8525c899cdb370a4.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cri-containerd-6233238dd0dd37f71668189af309ea791bc8777b3218351b748752944aa5b0d8.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cri-containerd-6233238dd0dd37f71668189af309ea791bc8777b3218351b748752944aa5b0d8.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cri-containerd-4f729cfd32f2109d8c225ac4b924b6a07bcd53ddf55d089230a4ab24e7336e7a.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cri-containerd-4f729cfd32f2109d8c225ac4b924b6a07bcd53ddf55d089230a4ab24e7336e7a.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cri-containerd-2f3d25a55591f94349b60f674b5da036620d8d962e8590612581028ba75852c2.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cri-containerd-2f3d25a55591f94349b60f674b5da036620d8d962e8590612581028ba75852c2.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cri-containerd-a1b6d7811b5d346578b04ea88f183830d8c7324856e686a2fa5d15723fb3b801.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cri-containerd-a1b6d7811b5d346578b04ea88f183830d8c7324856e686a2fa5d15723fb3b801.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/memory.reclaim: Invalid argument
+root@dakube:/sys/fs/cgroup# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED              STATUS              PORTS     NAMES
+8b76b82f2d27   alpine    "sleep 600"   About a minute ago   Up About a minute             stress
+root@dakube:/sys/fs/cgroup# docker inspect --format '{{.8b76b82f2d27}}' stress
+template parsing error: template: :1: bad number syntax: ".8b"
+root@dakube:/sys/fs/cgroup# docker inspect --format '{{8b76b82f2d27}}' stress
+template parsing error: template: :1: bad number syntax: "8b"
+root@dakube:/sys/fs/cgroup# docker inspect --format '8b76b82f2d27' stress
+8b76b82f2d27
+root@dakube:/sys/fs/cgroup# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED         STATUS         PORTS     NAMES
+8b76b82f2d27   alpine    "sleep 600"   3 minutes ago   Up 3 minutes             stress
+root@dakube:/sys/fs/cgroup# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED         STATUS         PORTS     NAMES
+8b76b82f2d27   alpine    "sleep 600"   3 minutes ago   Up 3 minutes             stress
+root@dakube:/sys/fs/cgroup#
+root@dakube:/sys/fs/cgroup#
+root@dakube:/sys/fs/cgroup# grep stress -R .
+grep: ./sys-fs-fuse-connections.mount/cgroup.kill: Invalid argument
+grep: ./sys-fs-fuse-connections.mount/memory.reclaim: Invalid argument
+grep: ./sys-kernel-config.mount/cgroup.kill: Invalid argument
+grep: ./sys-kernel-config.mount/memory.reclaim: Invalid argument
+grep: ./sys-kernel-debug.mount/cgroup.kill: Invalid argument
+grep: ./sys-kernel-debug.mount/memory.reclaim: Invalid argument
+grep: ./dev-mqueue.mount/cgroup.kill: Invalid argument
+grep: ./dev-mqueue.mount/memory.reclaim: Invalid argument
+grep: ./user.slice/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/app.slice/dbus.socket/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/app.slice/dbus.socket/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/app.slice/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/app.slice/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/init.scope/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/init.scope/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/user@1000.service/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/session-3.scope/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/session-3.scope/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/session-1.scope/cgroup.kill: Invalid argument
+grep: ./user.slice/user-1000.slice/session-1.scope/memory.reclaim: Invalid argument
+grep: ./user.slice/user-1000.slice/memory.reclaim: Invalid argument
+grep: ./user.slice/memory.reclaim: Invalid argument
+grep: ./sys-kernel-tracing.mount/cgroup.kill: Invalid argument
+grep: ./sys-kernel-tracing.mount/memory.reclaim: Invalid argument
+grep: ./init.scope/cgroup.kill: Invalid argument
+grep: ./init.scope/memory.reclaim: Invalid argument
+grep: ./system.slice/system-systemd\x2dfsck.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/system-systemd\x2dfsck.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/containerd.service/cgroup.kill: Invalid argument
+grep: ./system.slice/containerd.service/memory.reclaim: Invalid argument
+grep: ./system.slice/systemd-udevd.service/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-udevd.service/udev/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-udevd.service/memory.reclaim: Invalid argument
+grep: ./system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope/cgroup.kill: Invalid argument
+grep: ./system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope/memory.reclaim: Invalid argument
+grep: ./system.slice/cron.service/cgroup.kill: Invalid argument
+grep: ./system.slice/cron.service/memory.reclaim: Invalid argument
+grep: ./system.slice/system-serial\x2dgetty.slice/serial-getty@ttyS1.service/cgroup.kill: Invalid argument
+grep: ./system.slice/system-serial\x2dgetty.slice/serial-getty@ttyS1.service/memory.reclaim: Invalid argument
+grep: ./system.slice/system-serial\x2dgetty.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/system-serial\x2dgetty.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/networking.service/cgroup.kill: Invalid argument
+grep: ./system.slice/networking.service/memory.reclaim: Invalid argument
+grep: ./system.slice/docker.service/cgroup.kill: Invalid argument
+grep: ./system.slice/docker.service/memory.reclaim: Invalid argument
+grep: ./system.slice/rpcbind.socket/cgroup.kill: Invalid argument
+grep: ./system.slice/rpcbind.socket/memory.reclaim: Invalid argument
+grep: ./system.slice/system-modprobe.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/system-modprobe.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/systemd-journald.service/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-journald.service/memory.reclaim: Invalid argument
+grep: ./system.slice/ssh.service/cgroup.kill: Invalid argument
+grep: ./system.slice/ssh.service/memory.reclaim: Invalid argument
+grep: ./system.slice/boot-firmware.mount/cgroup.kill: Invalid argument
+grep: ./system.slice/boot-firmware.mount/memory.reclaim: Invalid argument
+grep: ./system.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/rpcbind.service/cgroup.kill: Invalid argument
+grep: ./system.slice/rpcbind.service/memory.reclaim: Invalid argument
+grep: ./system.slice/k3s.service/cgroup.kill: Invalid argument
+grep: ./system.slice/k3s.service/memory.reclaim: Invalid argument
+grep: ./system.slice/run-rpc_pipefs.mount/cgroup.kill: Invalid argument
+grep: ./system.slice/run-rpc_pipefs.mount/memory.reclaim: Invalid argument
+grep: ./system.slice/docker.socket/cgroup.kill: Invalid argument
+grep: ./system.slice/docker.socket/memory.reclaim: Invalid argument
+grep: ./system.slice/mnt-nfs-k3s.mount/cgroup.kill: Invalid argument
+grep: ./system.slice/mnt-nfs-k3s.mount/memory.reclaim: Invalid argument
+grep: ./system.slice/dbus.service/cgroup.kill: Invalid argument
+grep: ./system.slice/dbus.service/memory.reclaim: Invalid argument
+grep: ./system.slice/systemd-timesyncd.service/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-timesyncd.service/memory.reclaim: Invalid argument
+grep: ./system.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/system-getty.slice/getty@tty1.service/cgroup.kill: Invalid argument
+grep: ./system.slice/system-getty.slice/getty@tty1.service/memory.reclaim: Invalid argument
+grep: ./system.slice/system-getty.slice/cgroup.kill: Invalid argument
+grep: ./system.slice/system-getty.slice/memory.reclaim: Invalid argument
+grep: ./system.slice/systemd-logind.service/cgroup.kill: Invalid argument
+grep: ./system.slice/systemd-logind.service/memory.reclaim: Invalid argument
+grep: ./proc-sys-fs-binfmt_misc.mount/cgroup.kill: Invalid argument
+grep: ./proc-sys-fs-binfmt_misc.mount/memory.reclaim: Invalid argument
+grep: ./dev-hugepages.mount/cgroup.kill: Invalid argument
+grep: ./dev-hugepages.mount/memory.reclaim: Invalid argument
+grep: ./memory.reclaim: Invalid argument
+grep: ./kubepods.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cri-containerd-c87d14c58072fb44a1934961a1a8d31238fe10c266ae89609e0a852c2002fcd8.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cri-containerd-c87d14c58072fb44a1934961a1a8d31238fe10c266ae89609e0a852c2002fcd8.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cri-containerd-9e91a6f0317dba25e79f77099f0583968fbcc7887d9611ff8525c899cdb370a4.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/cri-containerd-9e91a6f0317dba25e79f77099f0583968fbcc7887d9611ff8525c899cdb370a4.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod2c5d91bf_4a9e_46f3_9cca_e10eda2d90e1.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cri-containerd-6233238dd0dd37f71668189af309ea791bc8777b3218351b748752944aa5b0d8.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cri-containerd-6233238dd0dd37f71668189af309ea791bc8777b3218351b748752944aa5b0d8.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cri-containerd-4f729cfd32f2109d8c225ac4b924b6a07bcd53ddf55d089230a4ab24e7336e7a.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/cri-containerd-4f729cfd32f2109d8c225ac4b924b6a07bcd53ddf55d089230a4ab24e7336e7a.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/kubepods-burstable-podb1108a4a_eb98_4ca7_be9d_779ddcb95c8a.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-burstable.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cri-containerd-2f3d25a55591f94349b60f674b5da036620d8d962e8590612581028ba75852c2.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cri-containerd-2f3d25a55591f94349b60f674b5da036620d8d962e8590612581028ba75852c2.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cri-containerd-a1b6d7811b5d346578b04ea88f183830d8c7324856e686a2fa5d15723fb3b801.scope/cgroup.kill: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/cri-containerd-a1b6d7811b5d346578b04ea88f183830d8c7324856e686a2fa5d15723fb3b801.scope/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7a21603a_a8bd_4827_b9de_0871e1c90f14.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/kubepods-besteffort.slice/memory.reclaim: Invalid argument
+grep: ./kubepods.slice/memory.reclaim: Invalid argument
+root@dakube:/sys/fs/cgroup# cd system.slice/docker
+docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope/
+docker.service/
+docker.socket/
+root@dakube:/sys/fs/cgroup# cd system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope/
+root@dakube:/sys/fs/cgroup/system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope# ls
+cgroup.controllers      cpu.max.burst             hugetlb.1GB.numa_stat      hugetlb.32MB.numa_stat     memory.current       memory.swap.events
+cgroup.events           cpu.pressure              hugetlb.1GB.rsvd.current   hugetlb.32MB.rsvd.current  memory.events        memory.swap.high
+cgroup.freeze           cpu.stat                  hugetlb.1GB.rsvd.max       hugetlb.32MB.rsvd.max      memory.events.local  memory.swap.max
+cgroup.kill             cpu.weight                hugetlb.2MB.current        hugetlb.64KB.current       memory.high          memory.zswap.current
+cgroup.max.depth        cpu.weight.nice           hugetlb.2MB.events         hugetlb.64KB.events        memory.low           memory.zswap.max
+cgroup.max.descendants  cpuset.cpus               hugetlb.2MB.events.local   hugetlb.64KB.events.local  memory.max           misc.current
+cgroup.pressure         cpuset.cpus.effective     hugetlb.2MB.max            hugetlb.64KB.max           memory.min           misc.events
+cgroup.procs            cpuset.cpus.partition     hugetlb.2MB.numa_stat      hugetlb.64KB.numa_stat     memory.numa_stat     misc.max
+cgroup.stat             cpuset.mems               hugetlb.2MB.rsvd.current   hugetlb.64KB.rsvd.current  memory.oom.group     pids.current
+cgroup.subtree_control  cpuset.mems.effective     hugetlb.2MB.rsvd.max       hugetlb.64KB.rsvd.max      memory.peak          pids.events
+cgroup.threads          hugetlb.1GB.current       hugetlb.32MB.current       io.max                     memory.pressure      pids.max
+cgroup.type             hugetlb.1GB.events        hugetlb.32MB.events        io.pressure                memory.reclaim       pids.peak
+cpu.idle                hugetlb.1GB.events.local  hugetlb.32MB.events.local  io.stat                    memory.stat          rdma.current
+cpu.max                 hugetlb.1GB.max           hugetlb.32MB.max           io.weight                  memory.swap.current  rdma.max
+root@dakube:/sys/fs/cgroup/system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope# cat cpu.max
+50000 100000
+root@dakube:/sys/fs/cgroup/system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope# cat memory.m
+cat: memory.m: No such file or directory
+root@dakube:/sys/fs/cgroup/system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope# cat memory.max
+max
+root@dakube:/sys/fs/cgroup/system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope# cat memory.current
+6328320
+root@dakube:/sys/fs/cgroup/system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope# docker rm -f stress
+stress
+root@dakube:/sys/fs/cgroup/system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope#
+root@dakube:/sys/fs/cgroup/system.slice/docker-8b76b82f2d27f2d32d78003f7ea992a167c531000c4e6a92d0a72cbea41da326.scope# cd
+root@dakube:~# docker run -d \
+  --name memtest \
+  --memory="64m" \
+  alpine sleep 600
+c3168b57ff5b4d4867a41319123028f98a570b0f67f27ad56889f50df84a685d
+root@dakube:~# docker exec -it memtest sh
+/ # apk add --no-cache stress-ng
+(1/5) Installing judy (1.0.5-r1)
+(2/5) Installing libmd (1.1.0-r0)
+(3/5) Installing libbsd (0.12.2-r0)
+(4/5) Installing liblksctp (1.0.19-r5)
+(5/5) Installing stress-ng (0.19.03-r0)
+Executing busybox-1.37.0-r30.trigger
+OK: 13.4 MiB in 21 packages
+/ # stress-ng --vm 1 --vm-bytes 128M --timeout 30s
+stress-ng: info:  [16] setting to a 30 secs run per stressor
+stress-ng: info:  [16] dispatching hogs: 1 vm
+stress-ng: info:  [17] vm: using 128M per stressor instance (total 128M of 556.67M available memory)
+
+stress-ng: warn:  [16] metrics-check: all bogo-op counters are zero, data may be incorrect
+stress-ng: info:  [16] skipped: 0
+stress-ng: info:  [16] passed: 1: vm (1)
+stress-ng: info:  [16] failed: 0
+stress-ng: info:  [16] metrics untrustworthy: 0
+stress-ng: info:  [16] successful run completed in 30.20 secs
+/ #
+/ # exit
+root@dakube:~# docker ps
+CONTAINER ID   IMAGE     COMMAND       CREATED              STATUS              PORTS     NAMES
+c3168b57ff5b   alpine    "sleep 600"   About a minute ago   Up About a minute             memtest
+root@dakube:~# dmesg |tail
+               thp_collapse_alloc 0
+[ 1491.051603] Tasks state (memory values in pages):
+[ 1491.057130] [  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name
+[ 1491.066629] [   3530]     0  3530      417        1    36864        0             0 sleep
+[ 1491.075662] [   3581]     0  3581      439      272    36864        0             0 sh
+[ 1491.084399] [   3591]     0  3591     3713      590    53248        0             0 stress-ng
+[ 1491.093698] [   3592]     0  3592     3714      130    53248        0             0 stress-ng-vm
+[ 1491.103232] [   3678]     0  3678    36483    15847   180224        0          1000 stress-ng-vm
+[ 1491.112734] oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null),cpuset=docker-c3168b57ff5b4d4867a41319123028f98a570b0f67f27ad56889f50df84a685d.scope,mems_allowed=0,oom_memcg=/system.slice/docker-c3168b57ff5b4d4867a41319123028f98a570b0f67f27ad56889f50df84a685d.scope,task_memcg=/system.slice/docker-c3168b57ff5b4d4867a41319123028f98a570b0f67f27ad56889f50df84a685d.scope,task=stress-ng-vm,pid=3678,uid=0
+[ 1491.150006] Memory cgroup out of memory: Killed process 3678 (stress-ng-vm) total-vm:145932kB, anon-rss:63004kB, file-rss:324kB, shmem-rss:60kB, UID:0 pgtables:176kB oom_score_adj:1000
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# docker rm -f memtest 2>/dev/null
+memtest
+
+
+
+TP 4.1
+root@dakube:~# systemctl stop docker
+Warning: Stopping docker.service, but it can still be activated by:
+  docker.socket
+root@dakube:~# apt purge -y docker.io docker-ce docker-ce-cli containerd
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+The following packages were automatically installed and are no longer required:
+  cgroupfs-mount criu gettext-base git git-man libcurl3-gnutls liberror-perl libintl-perl libintl-xs-perl libmodule-find-perl libnet1
+  libproc-processtable-perl libprotobuf-c1 libprotobuf32 libsort-naturally-perl libterm-readkey-perl needrestart patch pigz python3-protobuf sgml-base
+  tini wmdocker
+Use 'apt autoremove' to remove them.
+The following packages will be REMOVED:
+  containerd* docker-ce* docker-ce-cli* docker.io*
+0 upgraded, 0 newly installed, 4 to remove and 0 not upgraded.
+After this operation, 135 MB disk space will be freed.
+(Reading database ... 33812 files and directories currently installed.)
+Removing docker-ce (5:29.1.4-1~debian.12~bookworm) ...
+Removing docker-ce-cli (5:29.1.4-1~debian.12~bookworm) ...
+(Reading database ... 33614 files and directories currently installed.)
+Purging configuration files for docker.io (20.10.24+dfsg1-1+deb12u1+b2) ...
+
+Nuking /var/lib/docker ...
+
++ rm -rf /var/lib/docker/buildkit /var/lib/docker/containers /var/lib/docker/engine-id /var/lib/docker/image /var/lib/docker/network /var/lib/docker/nuke-graph-directory.sh /var/lib/docker/overlay2 /var/lib/docker/plugins /var/lib/docker/runtimes /var/lib/docker/swarm /var/lib/docker/tmp /var/lib/docker/trust /var/lib/docker/volumes
+dpkg: warning: while removing docker.io, directory '/etc/docker' not empty so not removed
+Purging configuration files for docker-ce (5:29.1.4-1~debian.12~bookworm) ...
+Purging configuration files for containerd (1.6.20~ds1-1+deb12u2) ...
+root@dakube:~# rm -rf /var/lib/docker /var/lib/containerd
+root@dakube:~#
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# ps -ef|grep -i defunct
+root        8918    8618  0 13:22 pts/0    00:00:00 grep -i defunct
+root@dakube:~# which docker
+root@dakube:~# uname -m
+aarch64
+root@dakube:~# swapon --show
+root@dakube:~# curl -sfL https://get.k3s.io | sh -
+[INFO]  Finding release for channel stable
+[INFO]  Using v1.34.3+k3s1 as release
+[INFO]  Downloading hash https://github.com/k3s-io/k3s/releases/download/v1.34.3+k3s1/sha256sum-arm64.txt
+[INFO]  Downloading binary https://github.com/k3s-io/k3s/releases/download/v1.34.3+k3s1/k3s-arm64
+[INFO]  Verifying binary download
+[INFO]  Installing k3s to /usr/local/bin/k3s
+[INFO]  Skipping installation of SELinux RPM
+[INFO]  Skipping /usr/local/bin/kubectl symlink to k3s, already exists
+[INFO]  Skipping /usr/local/bin/crictl symlink to k3s, already exists
+[INFO]  Skipping /usr/local/bin/ctr symlink to k3s, already exists
+[INFO]  Creating killall script /usr/local/bin/k3s-killall.sh
+[INFO]  Creating uninstall script /usr/local/bin/k3s-uninstall.sh
+[INFO]  env: Creating environment file /etc/systemd/system/k3s.service.env
+[INFO]  systemd: Creating service file /etc/systemd/system/k3s.service
+[INFO]  systemd: Enabling k3s unit
+Created symlink /etc/systemd/system/multi-user.target.wants/k3s.service → /etc/systemd/system/k3s.service.
+[INFO]  systemd: Starting k3s
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# systemctl status k3s
+● k3s.service - Lightweight Kubernetes
+     Loaded: loaded (/etc/systemd/system/k3s.service; enabled; preset: enabled)
+     Active: active (running) since Mon 2026-01-12 13:24:36 UTC; 6min ago
+       Docs: https://k3s.io
+    Process: 9121 ExecStartPre=/sbin/modprobe br_netfilter (code=exited, status=0/SUCCESS)
+    Process: 9122 ExecStartPre=/sbin/modprobe overlay (code=exited, status=0/SUCCESS)
+   Main PID: 9123 (k3s-server)
+      Tasks: 125
+     Memory: 1.2G
+        CPU: 3min 26.618s
+     CGroup: /system.slice/k3s.service
+             ├─ 9123 "/usr/local/bin/k3s server"
+             ├─ 9143 "containerd "
+             ├─10320 /var/lib/rancher/k3s/data/9b7ee93ee2655b32c83f5e645937519d8a6a866a4d1b1348ea561e7db11514d4/bin/containerd-shim-runc-v2 -namespace k8s.>
+             ├─10382 /var/lib/rancher/k3s/data/9b7ee93ee2655b32c83f5e645937519d8a6a866a4d1b1348ea561e7db11514d4/bin/containerd-shim-runc-v2 -namespace k8s.>
+             ├─10387 /var/lib/rancher/k3s/data/9b7ee93ee2655b32c83f5e645937519d8a6a866a4d1b1348ea561e7db11514d4/bin/containerd-shim-runc-v2 -namespace k8s.>
+             ├─11465 /var/lib/rancher/k3s/data/9b7ee93ee2655b32c83f5e645937519d8a6a866a4d1b1348ea561e7db11514d4/bin/containerd-shim-runc-v2 -namespace k8s.>
+             └─11529 /var/lib/rancher/k3s/data/9b7ee93ee2655b32c83f5e645937519d8a6a866a4d1b1348ea561e7db11514d4/bin/containerd-shim-runc-v2 -namespace k8s.>
+
+Jan 12 13:25:40 dakube k3s[9123]: I0112 13:25:40.557033    9123 resource_quota_monitor.go:227] "QuotaMonitor created object count evaluator" resource="apic>
+Jan 12 13:25:40 dakube k3s[9123]: I0112 13:25:40.557197    9123 resource_quota_monitor.go:227] "QuotaMonitor created object count evaluator" resource="ingr>
+Jan 12 13:25:40 dakube k3s[9123]: I0112 13:25:40.558338    9123 shared_informer.go:349] "Waiting for caches to sync" controller="resource quota"
+Jan 12 13:25:41 dakube k3s[9123]: I0112 13:25:41.294124    9123 shared_informer.go:349] "Waiting for caches to sync" controller="garbage collector"
+Jan 12 13:25:42 dakube k3s[9123]: I0112 13:25:42.158554    9123 shared_informer.go:356] "Caches are synced" controller="resource quota"
+Jan 12 13:25:42 dakube k3s[9123]: I0112 13:25:42.195127    9123 shared_informer.go:356] "Caches are synced" controller="garbage collector"
+Jan 12 13:25:44 dakube k3s[9123]: I0112 13:25:44.335423    9123 pod_startup_latency_tracker.go:104] "Observed pod startup duration" pod="kube-system/traefi>
+Jan 12 13:25:44 dakube k3s[9123]: I0112 13:25:44.386607    9123 event.go:389] "Event occurred" object="kube-system/traefik" fieldPath="" kind="Service" api>
+Jan 12 13:25:45 dakube k3s[9123]: I0112 13:25:45.365119    9123 endpointslice_controller.go:344] "Error syncing endpoint slices for service, retrying" key=>
+Jan 12 13:25:45 dakube k3s[9123]: I0112 13:25:45.389370    9123 event.go:389] "Event occurred" object="kube-system/traefik" fieldPath="" kind="Service" api>
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+root@dakube:~# kubectl get nodes
+NAME     STATUS   ROLES                  AGE    VERSION
+dakube   Ready    control-plane,master   278d   v1.34.3+k3s1
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# kubectl get pods -A
+NAMESPACE     NAME                                      READY   STATUS      RESTARTS   AGE
+kube-system   coredns-7f496c8d7d-crgww                  1/1     Running     0          16m
+kube-system   helm-install-traefik-crd-6clrn            0/1     Completed   0          16m
+kube-system   helm-install-traefik-nsjtj                0/1     Completed   1          16m
+kube-system   local-path-provisioner-578895bd58-rtknv   1/1     Running     0          16m
+kube-system   metrics-server-7b9c9c4b9c-mp77l           1/1     Running     0          16m
+kube-system   svclb-traefik-b4dc2f30-mqgcc              2/2     Running     0          15m
+kube-system   traefik-6f5f87584-f552z                   1/1     Running     0          15m
+root@dakube:~# crictl ps
+CONTAINER           IMAGE               CREATED             STATE               NAME                     ATTEMPT             POD ID              POD                                       NAMESPACE
+1fe39f0fc5836       64f5bf38404e1       15 minutes ago      Running             traefik                  0                   294ff254e49c8       traefik-6f5f87584-f552z                   kube-system
+64de4a0f4b2b4       a399cf1b9d57c       15 minutes ago      Running             lb-tcp-443               0                   5c8c3703a0cc9       svclb-traefik-b4dc2f30-mqgcc              kube-system
+e60fe8565dedb       a399cf1b9d57c       15 minutes ago      Running             lb-tcp-80                0                   5c8c3703a0cc9       svclb-traefik-b4dc2f30-mqgcc              kube-system
+2ee42273db290       e08f4d9d2e6ed       15 minutes ago      Running             coredns                  0                   9eaef1d00ac17       coredns-7f496c8d7d-crgww                  kube-system
+9465142b08e61       bc6c1e09a843d       15 minutes ago      Running             metrics-server           0                   3d97ce1cf9bbe       metrics-server-7b9c9c4b9c-mp77l           kube-system
+f5364477d4909       0594e75cdd5df       16 minutes ago      Running             local-path-provisioner   0                   af0866a43adf9       local-path-provisioner-578895bd58-rtknv   kube-system
+root@dakube:~# ls /sys/fs/cgroup/system.slice | grep k3s
+k3s.service
+mnt-nfs-k3s.mount
+root@dakube:~# ls /sys/fs/cgroup/kubepods.slice
+cgroup.controllers      cpu.pressure              hugetlb.1GB.rsvd.max       hugetlb.64KB.current       memory.events.local  memory.zswap.current
+cgroup.events           cpu.stat                  hugetlb.2MB.current        hugetlb.64KB.events        memory.high          memory.zswap.max
+cgroup.freeze           cpu.weight                hugetlb.2MB.events         hugetlb.64KB.events.local  memory.low           misc.current
+cgroup.kill             cpu.weight.nice           hugetlb.2MB.events.local   hugetlb.64KB.max           memory.max           misc.events
+cgroup.max.depth        cpuset.cpus               hugetlb.2MB.max            hugetlb.64KB.numa_stat     memory.min           misc.max
+cgroup.max.descendants  cpuset.cpus.effective     hugetlb.2MB.numa_stat      hugetlb.64KB.rsvd.current  memory.numa_stat     pids.current
+cgroup.pressure         cpuset.cpus.partition     hugetlb.2MB.rsvd.current   hugetlb.64KB.rsvd.max      memory.oom.group     pids.events
+cgroup.procs            cpuset.mems               hugetlb.2MB.rsvd.max       io.max                     memory.peak          pids.max
+cgroup.stat             cpuset.mems.effective     hugetlb.32MB.current       io.pressure                memory.pressure      pids.peak
+cgroup.subtree_control  hugetlb.1GB.current       hugetlb.32MB.events        io.stat                    memory.reclaim       rdma.current
+cgroup.threads          hugetlb.1GB.events        hugetlb.32MB.events.local  io.weight                  memory.stat          rdma.max
+cgroup.type             hugetlb.1GB.events.local  hugetlb.32MB.max           kubepods-besteffort.slice  memory.swap.current
+cpu.idle                hugetlb.1GB.max           hugetlb.32MB.numa_stat     kubepods-burstable.slice   memory.swap.events
+cpu.max                 hugetlb.1GB.numa_stat     hugetlb.32MB.rsvd.current  memory.current             memory.swap.high
+cpu.max.burst           hugetlb.1GB.rsvd.current  hugetlb.32MB.rsvd.max      memory.events              memory.swap.max
+root@dakube:~# cat /etc/rancher/k3s/k3s.yaml
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJkekNDQVIyZ0F3SUJBZ0lCQURBS0JnZ3Foa2pPUFFRREFqQWpNU0V3SHdZRFZRUUREQmhyTTNNdGMyVnkKZG1WeUxXTmhRREUzTkRReE5EazJOREl3SGhjTk1qVXdOREE0TWpJd01EUXlXaGNOTXpVd05EQTJNakl3TURReQpXakFqTVNFd0h3WURWUVFEREJock0zTXRjMlZ5ZG1WeUxXTmhRREUzTkRReE5EazJOREl3V1RBVEJnY3Foa2pPClBRSUJCZ2dxaGtqT1BRTUJCd05DQUFUZTFERUR0RVhaMWxqb1UyQ3paazNzdXZJSEVsc3IycWtJdk5WNi85VzEKNkNsc0dpaUFWaG94TXpkcFJCb0pqbExCZFVudFJ3STc0UWxzOVhrUllTaVlvMEl3UURBT0JnTlZIUThCQWY4RQpCQU1DQXFRd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBZEJnTlZIUTRFRmdRVUZzdjRIdUFZc2RlTTdLRUVsaDNOCnlXQ3JiRmt3Q2dZSUtvWkl6ajBFQXdJRFNBQXdSUUloQUxXdW1IWU1ZaW9DcFArSCt1dGtBSTNTMlc2dWdHS1AKZkVBUjd5empZQng5QWlCT01WZkF0a1N5d3VmVldMaitvR00waXk5SzJnYWtEQ2xzekZXOW0yWm50dz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+    server: https://127.0.0.1:6443
+  name: default
+contexts:
+- context:
+    cluster: default
+    user: default
+  name: default
+current-context: default
+kind: Config
+users:
+- name: default
+  user:
+    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJrakNDQVRlZ0F3SUJBZ0lJVGxPR0pkMnZEVVV3Q2dZSUtvWkl6ajBFQXdJd0l6RWhNQjhHQTFVRUF3d1kKYXpOekxXTnNhV1Z1ZEMxallVQXhOelEwTVRRNU5qUXlNQjRYRFRJMU1EUXdPREl5TURBME1sb1hEVEkzTURFdwpPVEUxTlRJME0xb3dNREVYTUJVR0ExVUVDaE1PYzNsemRHVnRPbTFoYzNSbGNuTXhGVEFUQmdOVkJBTVRESE41CmMzUmxiVHBoWkcxcGJqQlpNQk1HQnlxR1NNNDlBZ0VHQ0NxR1NNNDlBd0VIQTBJQUJKOHZRNVJKeWlEcVdma3cKRjZmZ2RMa1lZblRMT21XUFFDWlV5OHh4YVV3MXoranpsWERVNnhxRlpOYU8yMHhJUlFZdzNYQ0xIRHd0a0plbgozUnNKSEFDalNEQkdNQTRHQTFVZER3RUIvd1FFQXdJRm9EQVRCZ05WSFNVRUREQUtCZ2dyQmdFRkJRY0RBakFmCkJnTlZIU01FR0RBV2dCUnJKQzdOSmg3T3psOWR0WjUxNmhmTktmNWpRVEFLQmdncWhrak9QUVFEQWdOSkFEQkcKQWlFQWd5bXhDK21mQUxBU3N4K3pybDBadnFiWHRRNEtpRGdSSVJVUmNKWFZnUDRDSVFEczlwVzNXY0w1cHZSRwo0S21NZW9NKzR2Qk1IbzU0V0g5N1BYUU05Y0pUOEE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlCZURDQ0FSMmdBd0lCQWdJQkFEQUtCZ2dxaGtqT1BRUURBakFqTVNFd0h3WURWUVFEREJock0zTXRZMnhwClpXNTBMV05oUURFM05EUXhORGsyTkRJd0hoY05NalV3TkRBNE1qSXdNRFF5V2hjTk16VXdOREEyTWpJd01EUXkKV2pBak1TRXdId1lEVlFRRERCaHJNM010WTJ4cFpXNTBMV05oUURFM05EUXhORGsyTkRJd1dUQVRCZ2NxaGtqTwpQUUlCQmdncWhrak9QUU1CQndOQ0FBUlNqNUxGcDZLdFM1N1dBTEtuR1ZHR0F1ckJQNXlKM21NREd0OGsyREhtCmxLbWozZDdjUGpIV2hFQ09qRW1zVWJIMHdyaEsxWFl3TVlTZVlxZDROdGVPbzBJd1FEQU9CZ05WSFE4QkFmOEUKQkFNQ0FxUXdEd1lEVlIwVEFRSC9CQVV3QXdFQi96QWRCZ05WSFE0RUZnUVVheVF1elNZZXpzNWZYYldlZGVvWAp6U24rWTBFd0NnWUlLb1pJemowRUF3SURTUUF3UmdJaEFNbCtFbE9aY0tsdUFhcWJwWmhYWjVybnJhMlozb1ltClBWTGdkQjJ6Mk9GU0FpRUFtY0hVczByTEFaV3VEcm5JYkVJb3ZYa0ZIY3BBc3BmTnE3MGJ3RUhRYXlvPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    client-key-data: LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSUIrVTRobFJyMmdaQjgvazROTVMyWGZEOTRMK0phNENVZTZBRHRjeFZDVVFvQW9HQ0NxR1NNNDkKQXdFSG9VUURRZ0FFbnk5RGxFbktJT3BaK1RBWHArQjB1UmhpZE1zNlpZOUFKbFRMekhGcFREWFA2UE9WY05UcgpHb1ZrMW83YlRFaEZCakRkY0lzY1BDMlFsNmZkR3drY0FBPT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=
+
+
+TP 4.2
+
+~$ scp -o ProxyCommand="ssh rouls@dakube sudo cat /etc/rancher/k3s/k3s.yaml" \
+    rouls@dakube:/etc/hosts ~/.kube/dakube.yaml
+Enter passphrase for key '/home/rouls/.ssh/id_ed25519_rpi_devops':
+~$vi ~/.kube/dakube.yaml
+
+~$ kubectl get nodes
+NAME     STATUS   ROLES                  AGE    VERSION
+dakube   Ready    control-plane,master   278d   v1.34.3+k3s1
+
+~$ kubectl config get-contexts
+CURRENT   NAME      CLUSTER   AUTHINFO   NAMESPACE
+*         default   default   default
+~$ kubectl config use-context default
+Switched to context "default".
+~$ echo 'alias k=kubectl' >> ~/.bashrc
+source ~/.bashrc
+~$ k config get-contexts
+CURRENT   NAME      CLUSTER   AUTHINFO   NAMESPACE
+*         default   default   default
+
+
+TP 5.1
+
+rouls@wsl:~$ echo 'alias k=kubectl' >> ~/.bashrc
+source ~/.bashrc
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k config get-context
+error: unknown command "get-context"
+See 'kubectl config -h' for help and examples
+rouls@wsl:~$ k config get-contexts
+CURRENT   NAME      CLUSTER   AUTHINFO   NAMESPACE
+*         default   default   default
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ kubectl get nodes
+NAME     STATUS   ROLES                  AGE    VERSION
+dakube   Ready    control-plane,master   278d   v1.34.3+k3s1
+rouls@wsl:~$ k config get-contexts
+CURRENT   NAME      CLUSTER   AUTHINFO   NAMESPACE
+*         default   default   default
+rouls@wsl:~$ k config current-context
+default
+rouls@wsl:~$ k get nodes -o wide
+NAME     STATUS   ROLES                  AGE    VERSION        INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                         KERNEL-VERSION   CONTAINER-RUNTIME
+dakube   Ready    control-plane,master   278d   v1.34.3+k3s1   192.168.1.5   <none>        Debian GNU/Linux 12 (bookworm)   6.1.0-41-arm64   containerd://2.1.5-k3s1
+rouls@wsl:~$ kubectl run ktest \
+  --image=nginx \
+  --restart=Never
+pod/ktest created
+rouls@wsl:~$ k get pods
+NAME    READY   STATUS              RESTARTS   AGE
+ktest   0/1     ContainerCreating   0          10s
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k get pods
+NAME    READY   STATUS              RESTARTS   AGE
+ktest   0/1     ContainerCreating   0          14s
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k get pods
+NAME    READY   STATUS              RESTARTS   AGE
+ktest   0/1     ContainerCreating   0          20s
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k get pods
+NAME    READY   STATUS              RESTARTS   AGE
+ktest   0/1     ContainerCreating   0          23s
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k get pods
+NAME    READY   STATUS    RESTARTS   AGE
+ktest   1/1     Running   0          25s
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k get pods
+NAME    READY   STATUS    RESTARTS   AGE
+ktest   1/1     Running   0          27s
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k describe pod ktest
+Name:             ktest
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             dakube/192.168.1.5
+Start Time:       Mon, 12 Jan 2026 18:08:22 +0100
+Labels:           run=ktest
+Annotations:      <none>
+Status:           Running
+IP:               10.42.1.152
+IPs:
+  IP:  10.42.1.152
+Containers:
+  ktest:
+    Container ID:   containerd://bdb96a247fe1fb07a02b651b8c237c3b09fc7bc8c78e5b0008fae46cf7812326
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:7272239bd21472f311aa3e86a85fdca0f1ad648995f983ab6e5e7dea665cd233
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 12 Jan 2026 18:08:46 +0100
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-dlgvh (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-dlgvh:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  39s   default-scheduler  Successfully assigned default/ktest to dakube
+  Normal  Pulling    38s   kubelet            Pulling image "nginx"
+  Normal  Pulled     15s   kubelet            Successfully pulled image "nginx" in 22.685s (22.685s including waiting). Image size: 61205168 bytes.
+  Normal  Created    15s   kubelet            Created container: ktest
+  Normal  Started    15s   kubelet            Started container ktest
+rouls@wsl:~$ kubectl exec -it ktest -- sh
+# hostnam
+sh: 1: hostnam: not found
+# hostname
+ktest
+# ip addr
+sh: 3: ip: not found
+# ip
+sh: 4: ip: not found
+#
+#
+# ifconfig -a
+sh: 7: ifconfig: not found
+# exit
+command terminated with exit code 127
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k describe pod ktest
+Name:             ktest
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             dakube/192.168.1.5
+Start Time:       Mon, 12 Jan 2026 18:08:22 +0100
+Labels:           run=ktest
+Annotations:      <none>
+Status:           Running
+IP:               10.42.1.152
+IPs:
+  IP:  10.42.1.152
+Containers:
+  ktest:
+    Container ID:   containerd://bdb96a247fe1fb07a02b651b8c237c3b09fc7bc8c78e5b0008fae46cf7812326
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:7272239bd21472f311aa3e86a85fdca0f1ad648995f983ab6e5e7dea665cd233
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Mon, 12 Jan 2026 18:08:46 +0100
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-dlgvh (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True
+  Initialized                 True
+  Ready                       True
+  ContainersReady             True
+  PodScheduled                True
+Volumes:
+  kube-api-access-dlgvh:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  3m49s  default-scheduler  Successfully assigned default/ktest to dakube
+  Normal  Pulling    3m48s  kubelet            Pulling image "nginx"
+  Normal  Pulled     3m25s  kubelet            Successfully pulled image "nginx" in 22.685s (22.685s including waiting). Image size: 61205168 bytes.
+  Normal  Created    3m25s  kubelet            Created container: ktest
+  Normal  Started    3m25s  kubelet            Started container ktest
+rouls@wsl:~$ k get pods
+NAME    READY   STATUS    RESTARTS   AGE
+ktest   1/1     Running   0          3m57s
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k logs ktest
+/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+/docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+/docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+/docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+/docker-entrypoint.sh: Configuration complete; ready for start up
+2026/01/12 17:08:46 [notice] 1#1: using the "epoll" event method
+2026/01/12 17:08:46 [notice] 1#1: nginx/1.29.4
+2026/01/12 17:08:46 [notice] 1#1: built by gcc 14.2.0 (Debian 14.2.0-19)
+2026/01/12 17:08:46 [notice] 1#1: OS: Linux 6.1.0-41-arm64
+2026/01/12 17:08:46 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2026/01/12 17:08:46 [notice] 1#1: start worker processes
+2026/01/12 17:08:46 [notice] 1#1: start worker process 29
+2026/01/12 17:08:46 [notice] 1#1: start worker process 30
+2026/01/12 17:08:46 [notice] 1#1: start worker process 31
+2026/01/12 17:08:46 [notice] 1#1: start worker process 32
+rouls@wsl:~$
+rouls@wsl:~$
+rouls@wsl:~$ k delete pod ktest
+pod "ktest" deleted from default namespace
+rouls@wsl:~$
+rouls@wsl:~$ k get pods
+No resources found in default namespace.
+
+
+TP 5.2
+
+$ ip addr | grep -E "flannel|cni"
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN group default
+    inet 10.42.1.0/32 scope global flannel.1
+6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    inet 10.42.1.1/24 brd 10.42.1.255 scope global cni0
+17: vethfc572508@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether aa:57:a7:de:57:a2 brd ff:ff:ff:ff:ff:ff link-netns cni-c2357678-b01c-529e-6276-c325abbee97b
+19: vethf7e0e918@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 4e:f2:ad:d5:ab:b1 brd ff:ff:ff:ff:ff:ff link-netns cni-2c818594-caf4-dc6a-c993-199fe393066a
+20: vethd9f0ac78@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 9a:cd:9c:50:ab:51 brd ff:ff:ff:ff:ff:ff link-netns cni-30e62309-1b9e-6672-e0c5-1da79e626912
+21: veth42b523c1@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether b6:e8:2b:ae:8d:73 brd ff:ff:ff:ff:ff:ff link-netns cni-538e8d47-4637-c1e4-65fa-7bd7cfb5424f
+22: veth83eb26da@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether e2:a5:ab:04:23:59 brd ff:ff:ff:ff:ff:ff link-netns cni-2bab7dea-c40c-4a42-e30f-e7eaa58d0d1a
+$ sudo cat /var/lib/rancher/k3s/agent/etc/flannel/net-conf.json
+[sudo] password for rouls:
+{
+        "Network": "10.42.0.0/16",
+        "EnableIPv6": false,
+        "EnableIPv4": true,
+        "IPv6Network": "::/0",
+        "Backend": {
+        "Type": "vxlan"
+}
+}
+$ ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether dc:a6:32:29:12:36 brd ff:ff:ff:ff:ff:ff
+    altname end0
+    inet 192.168.1.5/24 brd 192.168.1.255 scope global dynamic eth0
+       valid_lft 40682sec preferred_lft 40682sec
+    inet6 2a01:e0a:f7c:44e0:dea6:32ff:fe29:1236/64 scope global dynamic mngtmpaddr
+       valid_lft 86105sec preferred_lft 86105sec
+    inet6 fe80::dea6:32ff:fe29:1236/64 scope link
+       valid_lft forever preferred_lft forever
+3: wlan0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether dc:a6:32:29:12:37 brd ff:ff:ff:ff:ff:ff
+4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default
+    link/ether c6:54:94:f4:3f:a4 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::c454:94ff:fef4:3fa4/64 scope link
+       valid_lft forever preferred_lft forever
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN group default
+    link/ether 2e:08:f1:66:11:81 brd ff:ff:ff:ff:ff:ff
+    inet 10.42.1.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::2c08:f1ff:fe66:1181/64 scope link
+       valid_lft forever preferred_lft forever
+6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether 9a:ff:98:81:94:83 brd ff:ff:ff:ff:ff:ff
+    inet 10.42.1.1/24 brd 10.42.1.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::98ff:98ff:fe81:9483/64 scope link
+       valid_lft forever preferred_lft forever
+17: vethfc572508@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether aa:57:a7:de:57:a2 brd ff:ff:ff:ff:ff:ff link-netns cni-c2357678-b01c-529e-6276-c325abbee97b
+    inet6 fe80::a857:a7ff:fede:57a2/64 scope link
+       valid_lft forever preferred_lft forever
+19: vethf7e0e918@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 4e:f2:ad:d5:ab:b1 brd ff:ff:ff:ff:ff:ff link-netns cni-2c818594-caf4-dc6a-c993-199fe393066a
+    inet6 fe80::4cf2:adff:fed5:abb1/64 scope link
+       valid_lft forever preferred_lft forever
+20: vethd9f0ac78@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether 9a:cd:9c:50:ab:51 brd ff:ff:ff:ff:ff:ff link-netns cni-30e62309-1b9e-6672-e0c5-1da79e626912
+    inet6 fe80::98cd:9cff:fe50:ab51/64 scope link
+       valid_lft forever preferred_lft forever
+21: veth42b523c1@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether b6:e8:2b:ae:8d:73 brd ff:ff:ff:ff:ff:ff link-netns cni-538e8d47-4637-c1e4-65fa-7bd7cfb5424f
+    inet6 fe80::b4e8:2bff:feae:8d73/64 scope link
+       valid_lft forever preferred_lft forever
+22: veth83eb26da@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP group default
+    link/ether e2:a5:ab:04:23:59 brd ff:ff:ff:ff:ff:ff link-netns cni-2bab7dea-c40c-4a42-e30f-e7eaa58d0d1a
+    inet6 fe80::e0a5:abff:fe04:2359/64 scope link
+       valid_lft forever preferred_lft forever
+$ ip addr show cni0
+6: cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default qlen 1000
+    link/ether 9a:ff:98:81:94:83 brd ff:ff:ff:ff:ff:ff
+    inet 10.42.1.1/24 brd 10.42.1.255 scope global cni0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::98ff:98ff:fe81:9483/64 scope link
+       valid_lft forever preferred_lft forever
+$
+$
+$ ip addr show flannel.1
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN group default
+    link/ether 2e:08:f1:66:11:81 brd ff:ff:ff:ff:ff:ff
+    inet 10.42.1.0/32 scope global flannel.1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::2c08:f1ff:fe66:1181/64 scope link
+       valid_lft forever preferred_lft forever
+$
+$
+$ ip link show flannel.1
+5: flannel.1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN mode DEFAULT group default
+    link/ether 2e:08:f1:66:11:81 brd ff:ff:ff:ff:ff:ff
+$ ip route
+default via 192.168.1.254 dev eth0
+10.42.1.0/24 dev cni0 proto kernel scope link src 10.42.1.1
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.5
+$ ip link | grep veth
+17: vethfc572508@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP mode DEFAULT group default
+19: vethf7e0e918@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP mode DEFAULT group default
+20: vethd9f0ac78@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP mode DEFAULT group default
+21: veth42b523c1@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP mode DEFAULT group default
+22: veth83eb26da@if2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue master cni0 state UP mode DEFAULT group default
+$ kubectl run pod-a --image=busybox --restart=Never -- sleep 3600
+WARN[0001] Unable to read /etc/rancher/k3s/k3s.yaml, please start server with --write-kubeconfig-mode or --write-kubeconfig-group to modify kube config permissions
+error: error loading config file "/etc/rancher/k3s/k3s.yaml": open /etc/rancher/k3s/k3s.yaml: permission denied
+$ sudo -i
+[sudo] password for rouls:
+root@dakube:~# kubectl run pod-a --image=busybox --restart=Never -- sleep 3600
+pod/pod-a created
+root@dakube:~# crictl ps
+CONTAINER           IMAGE               CREATED             STATE               NAME                     ATTEMPT             POD ID              POD                                       NAMESPACE
+78004d5817093       eade5be814e81       4 seconds ago       Running             pod-a                    0                   3332bbbbfb3f6       pod-a                                     default
+1fe39f0fc5836       64f5bf38404e1       32 hours ago        Running             traefik                  0                   294ff254e49c8       traefik-6f5f87584-f552z                   kube-system
+64de4a0f4b2b4       a399cf1b9d57c       32 hours ago        Running             lb-tcp-443               0                   5c8c3703a0cc9       svclb-traefik-b4dc2f30-mqgcc              kube-system
+e60fe8565dedb       a399cf1b9d57c       32 hours ago        Running             lb-tcp-80                0                   5c8c3703a0cc9       svclb-traefik-b4dc2f30-mqgcc              kube-system
+2ee42273db290       e08f4d9d2e6ed       32 hours ago        Running             coredns                  0                   9eaef1d00ac17       coredns-7f496c8d7d-crgww                  kube-system
+9465142b08e61       bc6c1e09a843d       32 hours ago        Running             metrics-server           0                   3d97ce1cf9bbe       metrics-server-7b9c9c4b9c-mp77l           kube-system
+f5364477d4909       0594e75cdd5df       32 hours ago        Running             local-path-provisioner   0                   af0866a43adf9       local-path-provisioner-578895bd58-rtknv   kube-system
+root@dakube:~# man crictl
+-bash: man: command not found
+root@dakube:~# crictl --help
+NAME:
+   crictl - client for CRI
+
+USAGE:
+   crictl [global options] command [command options]
+
+VERSION:
+   v1.34.0-k3s2
+
+COMMANDS:
+   attach                 Attach to a running container
+   checkpoint             Checkpoint one or more running containers
+   completion             Output shell completion code
+   config                 Get, set and list crictl configuration options
+   create                 Create a new container
+   events, event          Stream the events of containers
+   exec                   Run a command in a running container
+   imagefsinfo            Return image filesystem info
+   images, image, img     List images
+   info                   Display information of the container runtime
+   inspect                Display the status of one or more containers
+   inspecti               Return the status of one or more images
+   inspectp               Display the status of one or more pods
+   logs                   Fetch the logs of a container
+   metricdescs            List metric descriptors. Returns information about the metrics available through the CRI.
+   metricsp               List pod metrics. Metrics are unstructured key/value pairs gathered by CRI meant to replace cAdvisor's /metrics/cadvisor endpoint.
+   pods                   List pods
+   port-forward           Forward local port to a pod
+   ps                     List containers
+   pull                   Pull an image from a registry
+   rm                     Remove one or more containers
+   rmi                    Remove one or more images
+   rmp                    Remove one or more pods
+   run                    Run a new container inside a sandbox
+   runp                   Run a new pod
+   runtime-config         Retrieve the container runtime configuration
+   start                  Start one or more created containers
+   stats                  List container(s) resource usage statistics
+   statsp                 List pod statistics. Stats represent a structured API that will fulfill the Kubelet's /stats/summary endpoint.
+   stop                   Stop one or more running containers
+   stopp                  Stop one or more running pods
+   update                 Update one or more running containers
+   update-runtime-config  Update the runtime configuration
+   version                Display runtime version information
+   help, h                Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --config value, -c value                   Location of the client config file. If not specified and the default does not exist, the program's directory is searched as well (default: "/etc/crictl.yaml") [$CRI_CONFIG_FILE]
+   --debug, -D                                Enable debug mode (default: false)
+   --enable-tracing                           Enable OpenTelemetry tracing. (default: false)
+   --image-endpoint value, -i value           Endpoint of CRI image manager service (default: uses 'runtime-endpoint' setting) [$IMAGE_SERVICE_ENDPOINT]
+   --profile-cpu value                        Write a pprof CPU profile to the provided path.
+   --profile-mem value                        Write a pprof memory profile to the provided path.
+   --runtime-endpoint value, -r value         Endpoint of CRI container runtime service (default: uses in order the first successful one of [unix:///run/k3s/containerd/containerd.sock unix:///var/run/dockershim.sock unix:///run/containerd/containerd.sock unix:///run/crio/crio.sock unix:///var/run/cri-dockerd.sock]). Default is now deprecated and the endpoint should be set instead. [$CONTAINER_RUNTIME_ENDPOINT]
+   --timeout value, -t value                  Timeout of connecting to the server in seconds (e.g. 2s, 20s.). 0 or less is set to default (default: 2s)
+   --tracing-endpoint value                   Address to which the gRPC tracing collector will send spans to. (default: "127.0.0.1:4317")
+   --tracing-sampling-rate-per-million value  Number of samples to collect per million OpenTelemetry spans. Set to 1000000 or -1 to always sample. (default: -1)
+   --help, -h                                 Show help (default: false)
+   --version, -v                              Print the version (default: false)
+root@dakube:~# crictl inspect 3332bbbbfb3f6 |grep -i netns
+E0113 21:28:20.802083   82709 log.go:32] "ContainerStatus from runtime service failed" err="rpc error: code = NotFound desc = an error occurred when try to find container \"3332bbbbfb3f6\": not found" containerID="3332bbbbfb3f6"
+FATA[0000] get the status of containers: get container status: rpc error: code = NotFound desc = an error occurred when try to find container "3332bbbbfb3f6": not found
+root@dakube:~# crictl inspect 78004d5817093 |grep -i netns
+root@dakube:~#
+root@dakube:~#
+root@dakube:~# crictl inspect 78004d5817093
+{
+  "info": {
+    "config": {
+      "annotations": {
+        "io.kubernetes.container.hash": "76c3a631",
+        "io.kubernetes.container.restartCount": "0",
+        "io.kubernetes.container.terminationMessagePath": "/dev/termination-log",
+        "io.kubernetes.container.terminationMessagePolicy": "File",
+        "io.kubernetes.pod.terminationGracePeriod": "30"
+      },
+      "args": [
+        "sleep",
+        "3600"
+      ],
+      "envs": [
+        {
+          "key": "KUBERNETES_SERVICE_HOST",
+          "value": "10.43.0.1"
+        },
+        {
+          "key": "KUBERNETES_PORT_443_TCP_PROTO",
+          "value": "tcp"
+        },
+        {
+          "key": "MYAPP_SERVICE_PORT_80_TCP",
+          "value": "tcp://10.43.62.254:80"
+        },
+        {
+          "key": "KUBERNETES_PORT",
+          "value": "tcp://10.43.0.1:443"
+        },
+        {
+          "key": "MYAPP_SERVICE_PORT_80_TCP_PORT",
+          "value": "80"
+        },
+        {
+          "key": "MYAPP_SERVICE_PORT_80_TCP_ADDR",
+          "value": "10.43.62.254"
+        },
+        {
+          "key": "KUBERNETES_SERVICE_PORT_HTTPS",
+          "value": "443"
+        },
+        {
+          "key": "KUBERNETES_PORT_443_TCP",
+          "value": "tcp://10.43.0.1:443"
+        },
+        {
+          "key": "MYAPP_SERVICE_SERVICE_PORT",
+          "value": "80"
+        },
+        {
+          "key": "MYAPP_SERVICE_PORT",
+          "value": "tcp://10.43.62.254:80"
+        },
+        {
+          "key": "KUBERNETES_SERVICE_PORT",
+          "value": "443"
+        },
+        {
+          "key": "KUBERNETES_PORT_443_TCP_PORT",
+          "value": "443"
+        },
+        {
+          "key": "KUBERNETES_PORT_443_TCP_ADDR",
+          "value": "10.43.0.1"
+        },
+        {
+          "key": "MYAPP_SERVICE_SERVICE_HOST",
+          "value": "10.43.62.254"
+        },
+        {
+          "key": "MYAPP_SERVICE_PORT_80_TCP_PROTO",
+          "value": "tcp"
+        }
+      ],
+      "image": {
+        "image": "sha256:eade5be814e817df411f138aa7711c3f81595185eb54b3257fd19f6c4966b285",
+        "user_specified_image": "busybox"
+      },
+      "labels": {
+        "io.kubernetes.container.name": "pod-a",
+        "io.kubernetes.pod.name": "pod-a",
+        "io.kubernetes.pod.namespace": "default",
+        "io.kubernetes.pod.uid": "c28a4ef5-871f-4f83-87c7-8c6f9a2f4658"
+      },
+      "linux": {
+        "resources": {
+          "cpu_period": 100000,
+          "cpu_shares": 2,
+          "hugepage_limits": [
+            {
+              "page_size": "2MB"
+            },
+            {
+              "page_size": "32MB"
+            },
+            {
+              "page_size": "64KB"
+            },
+            {
+              "page_size": "1GB"
+            }
+          ],
+          "oom_score_adj": 1000,
+          "unified": {
+            "memory.oom.group": "1",
+            "memory.swap.max": "0"
+          }
+        },
+        "security_context": {
+          "masked_paths": [
+            "/proc/asound",
+            "/proc/acpi",
+            "/proc/interrupts",
+            "/proc/kcore",
+            "/proc/keys",
+            "/proc/latency_stats",
+            "/proc/timer_list",
+            "/proc/timer_stats",
+            "/proc/sched_debug",
+            "/proc/scsi",
+            "/sys/firmware",
+            "/sys/devices/virtual/powercap"
+          ],
+          "namespace_options": {
+            "pid": 1,
+            "userns_options": {
+              "mode": 2
+            }
+          },
+          "readonly_paths": [
+            "/proc/bus",
+            "/proc/fs",
+            "/proc/irq",
+            "/proc/sys",
+            "/proc/sysrq-trigger"
+          ],
+          "run_as_user": {},
+          "seccomp": {
+            "profile_type": 1
+          }
+        }
+      },
+      "log_path": "pod-a/0.log",
+      "metadata": {
+        "name": "pod-a"
+      },
+      "mounts": [
+        {
+          "container_path": "/var/run/secrets/kubernetes.io/serviceaccount",
+          "host_path": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/volumes/kubernetes.io~projected/kube-api-access-ts47l",
+          "readonly": true
+        },
+        {
+          "container_path": "/etc/hosts",
+          "host_path": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/etc-hosts"
+        },
+        {
+          "container_path": "/dev/termination-log",
+          "host_path": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/containers/pod-a/b8e4cdfb"
+        }
+      ]
+    },
+    "pid": 82540,
+    "removing": false,
+    "runtimeOptions": {
+      "systemd_cgroup": true
+    },
+    "runtimeSpec": {
+      "annotations": {
+        "io.kubernetes.cri.container-name": "pod-a",
+        "io.kubernetes.cri.container-type": "container",
+        "io.kubernetes.cri.image-name": "busybox",
+        "io.kubernetes.cri.sandbox-id": "3332bbbbfb3f6c8e339c28ec9b0582323ec7e91288bebec7af0487b7f2772190",
+        "io.kubernetes.cri.sandbox-name": "pod-a",
+        "io.kubernetes.cri.sandbox-namespace": "default",
+        "io.kubernetes.cri.sandbox-uid": "c28a4ef5-871f-4f83-87c7-8c6f9a2f4658"
+      },
+      "linux": {
+        "cgroupsPath": "kubepods-besteffort-podc28a4ef5_871f_4f83_87c7_8c6f9a2f4658.slice:cri-containerd:78004d58170939265d76db487717874ea44e079e4379bcc39f8be9e1a0d63a2b",
+        "maskedPaths": [
+          "/proc/asound",
+          "/proc/acpi",
+          "/proc/interrupts",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware",
+          "/sys/devices/virtual/powercap"
+        ],
+        "namespaces": [
+          {
+            "type": "pid"
+          },
+          {
+            "path": "/proc/82511/ns/ipc",
+            "type": "ipc"
+          },
+          {
+            "path": "/proc/82511/ns/uts",
+            "type": "uts"
+          },
+          {
+            "type": "mount"
+          },
+          {
+            "path": "/proc/82511/ns/net",
+            "type": "network"
+          },
+          {
+            "type": "cgroup"
+          }
+        ],
+        "readonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ],
+        "resources": {
+          "cpu": {
+            "period": 100000,
+            "shares": 2
+          },
+          "devices": [
+            {
+              "access": "rwm",
+              "allow": false
+            }
+          ],
+          "memory": {},
+          "unified": {
+            "memory.oom.group": "1",
+            "memory.swap.max": "0"
+          }
+        }
+      },
+      "mounts": [
+        {
+          "destination": "/proc",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ],
+          "source": "proc",
+          "type": "proc"
+        },
+        {
+          "destination": "/dev",
+          "options": [
+            "nosuid",
+            "strictatime",
+            "mode=755",
+            "size=65536k"
+          ],
+          "source": "tmpfs",
+          "type": "tmpfs"
+        },
+        {
+          "destination": "/dev/pts",
+          "options": [
+            "nosuid",
+            "noexec",
+            "newinstance",
+            "ptmxmode=0666",
+            "mode=0620",
+            "gid=5"
+          ],
+          "source": "devpts",
+          "type": "devpts"
+        },
+        {
+          "destination": "/dev/mqueue",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ],
+          "source": "mqueue",
+          "type": "mqueue"
+        },
+        {
+          "destination": "/sys",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev",
+            "ro"
+          ],
+          "source": "sysfs",
+          "type": "sysfs"
+        },
+        {
+          "destination": "/sys/fs/cgroup",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev",
+            "relatime",
+            "ro"
+          ],
+          "source": "cgroup",
+          "type": "cgroup"
+        },
+        {
+          "destination": "/etc/hosts",
+          "options": [
+            "rbind",
+            "rprivate",
+            "rw"
+          ],
+          "source": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/etc-hosts",
+          "type": "bind"
+        },
+        {
+          "destination": "/dev/termination-log",
+          "options": [
+            "rbind",
+            "rprivate",
+            "rw"
+          ],
+          "source": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/containers/pod-a/b8e4cdfb",
+          "type": "bind"
+        },
+        {
+          "destination": "/etc/hostname",
+          "options": [
+            "rbind",
+            "rprivate",
+            "rw"
+          ],
+          "source": "/var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/sandboxes/3332bbbbfb3f6c8e339c28ec9b0582323ec7e91288bebec7af0487b7f2772190/hostname",
+          "type": "bind"
+        },
+        {
+          "destination": "/etc/resolv.conf",
+          "options": [
+            "rbind",
+            "rprivate",
+            "rw"
+          ],
+          "source": "/var/lib/rancher/k3s/agent/containerd/io.containerd.grpc.v1.cri/sandboxes/3332bbbbfb3f6c8e339c28ec9b0582323ec7e91288bebec7af0487b7f2772190/resolv.conf",
+          "type": "bind"
+        },
+        {
+          "destination": "/dev/shm",
+          "options": [
+            "rbind",
+            "rprivate",
+            "rw"
+          ],
+          "source": "/run/k3s/containerd/io.containerd.grpc.v1.cri/sandboxes/3332bbbbfb3f6c8e339c28ec9b0582323ec7e91288bebec7af0487b7f2772190/shm",
+          "type": "bind"
+        },
+        {
+          "destination": "/var/run/secrets/kubernetes.io/serviceaccount",
+          "options": [
+            "rbind",
+            "rprivate",
+            "ro"
+          ],
+          "source": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/volumes/kubernetes.io~projected/kube-api-access-ts47l",
+          "type": "bind"
+        }
+      ],
+      "ociVersion": "1.2.1",
+      "process": {
+        "apparmorProfile": "cri-containerd.apparmor.d",
+        "args": [
+          "sleep",
+          "3600"
+        ],
+        "capabilities": {
+          "bounding": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_MKNOD",
+            "CAP_NET_RAW",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETFCAP",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_SYS_CHROOT",
+            "CAP_KILL",
+            "CAP_AUDIT_WRITE"
+          ],
+          "effective": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_MKNOD",
+            "CAP_NET_RAW",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETFCAP",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_SYS_CHROOT",
+            "CAP_KILL",
+            "CAP_AUDIT_WRITE"
+          ],
+          "permitted": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_MKNOD",
+            "CAP_NET_RAW",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETFCAP",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_SYS_CHROOT",
+            "CAP_KILL",
+            "CAP_AUDIT_WRITE"
+          ]
+        },
+        "cwd": "/",
+        "env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "HOSTNAME=pod-a",
+          "KUBERNETES_SERVICE_HOST=10.43.0.1",
+          "KUBERNETES_PORT_443_TCP_PROTO=tcp",
+          "MYAPP_SERVICE_PORT_80_TCP=tcp://10.43.62.254:80",
+          "KUBERNETES_PORT=tcp://10.43.0.1:443",
+          "MYAPP_SERVICE_PORT_80_TCP_PORT=80",
+          "MYAPP_SERVICE_PORT_80_TCP_ADDR=10.43.62.254",
+          "KUBERNETES_SERVICE_PORT_HTTPS=443",
+          "KUBERNETES_PORT_443_TCP=tcp://10.43.0.1:443",
+          "MYAPP_SERVICE_SERVICE_PORT=80",
+          "MYAPP_SERVICE_PORT=tcp://10.43.62.254:80",
+          "KUBERNETES_SERVICE_PORT=443",
+          "KUBERNETES_PORT_443_TCP_PORT=443",
+          "KUBERNETES_PORT_443_TCP_ADDR=10.43.0.1",
+          "MYAPP_SERVICE_SERVICE_HOST=10.43.62.254",
+          "MYAPP_SERVICE_PORT_80_TCP_PROTO=tcp"
+        ],
+        "oomScoreAdj": 1000,
+        "user": {
+          "additionalGids": [
+            0,
+            10
+          ],
+          "gid": 0,
+          "uid": 0
+        }
+      },
+      "root": {
+        "path": "rootfs"
+      }
+    },
+    "runtimeType": "io.containerd.runc.v2",
+    "sandboxID": "3332bbbbfb3f6c8e339c28ec9b0582323ec7e91288bebec7af0487b7f2772190",
+    "snapshotKey": "78004d58170939265d76db487717874ea44e079e4379bcc39f8be9e1a0d63a2b",
+    "snapshotter": "overlayfs"
+  },
+  "status": {
+    "annotations": {
+      "io.kubernetes.container.hash": "76c3a631",
+      "io.kubernetes.container.restartCount": "0",
+      "io.kubernetes.container.terminationMessagePath": "/dev/termination-log",
+      "io.kubernetes.container.terminationMessagePolicy": "File",
+      "io.kubernetes.pod.terminationGracePeriod": "30"
+    },
+    "createdAt": "2026-01-13T21:25:52.287223177Z",
+    "exitCode": 0,
+    "finishedAt": "0001-01-01T00:00:00Z",
+    "id": "78004d58170939265d76db487717874ea44e079e4379bcc39f8be9e1a0d63a2b",
+    "image": {
+      "annotations": {},
+      "image": "docker.io/library/busybox:latest",
+      "runtimeHandler": "",
+      "userSpecifiedImage": ""
+    },
+    "imageId": "",
+    "imageRef": "docker.io/library/busybox@sha256:2383baad1860bbe9d8a7a843775048fd07d8afe292b94bd876df64a69aae7cb1",
+    "labels": {
+      "io.kubernetes.container.name": "pod-a",
+      "io.kubernetes.pod.name": "pod-a",
+      "io.kubernetes.pod.namespace": "default",
+      "io.kubernetes.pod.uid": "c28a4ef5-871f-4f83-87c7-8c6f9a2f4658"
+    },
+    "logPath": "/var/log/pods/default_pod-a_c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/pod-a/0.log",
+    "message": "",
+    "metadata": {
+      "attempt": 0,
+      "name": "pod-a"
+    },
+    "mounts": [
+      {
+        "containerPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+        "gidMappings": [],
+        "hostPath": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/volumes/kubernetes.io~projected/kube-api-access-ts47l",
+        "imageSubPath": "",
+        "propagation": "PROPAGATION_PRIVATE",
+        "readonly": true,
+        "recursiveReadOnly": false,
+        "selinuxRelabel": false,
+        "uidMappings": []
+      },
+      {
+        "containerPath": "/etc/hosts",
+        "gidMappings": [],
+        "hostPath": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/etc-hosts",
+        "imageSubPath": "",
+        "propagation": "PROPAGATION_PRIVATE",
+        "readonly": false,
+        "recursiveReadOnly": false,
+        "selinuxRelabel": false,
+        "uidMappings": []
+      },
+      {
+        "containerPath": "/dev/termination-log",
+        "gidMappings": [],
+        "hostPath": "/var/lib/kubelet/pods/c28a4ef5-871f-4f83-87c7-8c6f9a2f4658/containers/pod-a/b8e4cdfb",
+        "imageSubPath": "",
+        "propagation": "PROPAGATION_PRIVATE",
+        "readonly": false,
+        "recursiveReadOnly": false,
+        "selinuxRelabel": false,
+        "uidMappings": []
+      }
+    ],
+    "reason": "",
+    "resources": {
+      "linux": {
+        "cpuPeriod": "100000",
+        "cpuQuota": "0",
+        "cpuShares": "2",
+        "cpusetCpus": "",
+        "cpusetMems": "",
+        "hugepageLimits": [],
+        "memoryLimitInBytes": "0",
+        "memorySwapLimitInBytes": "0",
+        "oomScoreAdj": "1000",
+        "unified": {
+          "memory.oom.group": "1",
+          "memory.swap.max": "0"
+        }
+      }
+    },
+    "startedAt": "2026-01-13T21:25:52.459488036Z",
+    "state": "CONTAINER_RUNNING",
+    "stopSignal": "RUNTIME_DEFAULT",
+    "user": {
+      "linux": {
+        "gid": "0",
+        "supplementalGroups": [
+          "0",
+          "10"
+        ],
+        "uid": "0"
+      }
+    }
+  }
+}
+root@dakube:~# crictl inspect 78004d5817093|grep proc
+            "/proc/asound",
+            "/proc/acpi",
+            "/proc/interrupts",
+            "/proc/kcore",
+            "/proc/keys",
+            "/proc/latency_stats",
+            "/proc/timer_list",
+            "/proc/timer_stats",
+            "/proc/sched_debug",
+            "/proc/scsi",
+            "/proc/bus",
+            "/proc/fs",
+            "/proc/irq",
+            "/proc/sys",
+            "/proc/sysrq-trigger"
+          "/proc/asound",
+          "/proc/acpi",
+          "/proc/interrupts",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+            "path": "/proc/82511/ns/ipc",
+            "path": "/proc/82511/ns/uts",
+            "path": "/proc/82511/ns/net",
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+          "destination": "/proc",
+          "source": "proc",
+          "type": "proc"
+      "process": {
+root@dakube:~# crictl inspect 78004d5817093|grep ns/net -b4
+5920-          {
+5932-            "type": "mount"
+5960-          },
+5973-          {
+5985:            "path": "/proc/82511/ns/net",
+6027-            "type": "network"
+6057-          },
+6070-          {
+6082-            "type": "cgroup"
+root@dakube:~# crictl inspect 78004d5817093|grep ns/net -c4
+1
+root@dakube:~# crictl inspect 78004d5817093|grep ns/net -a4
+          {
+            "type": "mount"
+          },
+          {
+            "path": "/proc/82511/ns/net",
+            "type": "network"
+          },
+          {
+            "type": "cgroup"
+root@dakube:~# crictl inspect 78004d5817093|grep ns/net -a10
+            "type": "ipc"
+          },
+          {
+            "path": "/proc/82511/ns/uts",
+            "type": "uts"
+          },
+          {
+            "type": "mount"
+          },
+          {
+            "path": "/proc/82511/ns/net",
+            "type": "network"
+          },
+          {
+            "type": "cgroup"
+          }
+        ],
+        "readonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+root@dakube:~# kubectl delete pod pod-a
+pod "pod-a" deleted from default namespace
