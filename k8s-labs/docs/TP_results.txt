@@ -2710,3 +2710,214 @@ root@dakube:~# crictl inspect 78004d5817093|grep ns/net -a10
           "/proc/irq",
 root@dakube:~# kubectl delete pod pod-a
 pod "pod-a" deleted from default namespace
+
+
+TP 5.3
+
+root@dakube:~# kubectl run web \
+  --image=nginx \
+  --restart=Never
+pod/web created
+
+root@dakube:~# kubectl get pod -o wide
+NAME   READY   STATUS    RESTARTS   AGE   IP            NODE     NOMINATED NODE   READINESS GATES
+web    1/1     Running   0          74s   10.42.1.194   dakube   <none>           <none>
+
+root@dakube:~# kubectl expose pod web \
+  --name web-svc \
+  --port 80 \
+  --target-port 80 \
+  --type ClusterIP
+service/web-svc exposed
+root@dakube:~# 
+root@dakube:~# kubectl get svc
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP   10.43.0.1       <none>        443/TCP        294d
+myapp-service   NodePort    10.43.62.254    <none>        80:30008/TCP   280d
+web-svc         ClusterIP   10.43.214.253   <none>        80/TCP         10s
+root@dakube:~# 
+root@dakube:~# 
+root@dakube:~# kubectl get svc web-svc
+NAME      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+web-svc   ClusterIP   10.43.214.253   <none>        80/TCP    23s
+root@dakube:~# kubectl -n kube-system get pods | grep proxy
+root@dakube:~# kubectl -n kube-system get pods
+NAME                                      READY   STATUS      RESTARTS       AGE
+coredns-7f496c8d7d-crgww                  1/1     Running     7 (23h ago)    16d
+helm-install-traefik-crd-6clrn            0/1     Completed   0              16d
+helm-install-traefik-nsjtj                0/1     Completed   1              16d
+local-path-provisioner-578895bd58-rtknv   1/1     Running     7 (23h ago)    16d
+metrics-server-7b9c9c4b9c-mp77l           1/1     Running     7 (23h ago)    16d
+svclb-traefik-b4dc2f30-mqgcc              2/2     Running     14 (23h ago)   16d
+traefik-6f5f87584-f552z                   1/1     Running     7 (23h ago)    16d
+root@dakube:~# kubectl -n kube-system describe pod traefik-6f5f87584-f552z
+Name:                 traefik-6f5f87584-f552z
+Namespace:            kube-system
+Priority:             2000000000
+Priority Class Name:  system-cluster-critical
+Service Account:      traefik
+Node:                 dakube/192.168.1.5
+Start Time:           Mon, 12 Jan 2026 13:25:25 +0000
+Labels:               app.kubernetes.io/instance=traefik-kube-system
+                      app.kubernetes.io/managed-by=Helm
+                      app.kubernetes.io/name=traefik
+                      helm.sh/chart=traefik-37.1.1_up37.1.0
+                      pod-template-hash=6f5f87584
+Annotations:          prometheus.io/path: /metrics
+                      prometheus.io/port: 9100
+                      prometheus.io/scrape: true
+Status:               Running
+IP:                   10.42.1.191
+IPs:
+  IP:           10.42.1.191
+Controlled By:  ReplicaSet/traefik-6f5f87584
+Containers:
+  traefik:
+    Container ID:  containerd://acb8b5a3ed35f1d27ae80a01678c9f4eb816c814997f1ea1cb90846d776e16d8
+    Image:         rancher/mirrored-library-traefik:3.5.1
+    Image ID:      docker.io/rancher/mirrored-library-traefik@sha256:c56901603318ee375477ee5c3f50d175d3ec42dc102efc2f1158f0756ba4dffa
+    Ports:         9100/TCP (metrics), 8080/TCP (traefik), 8000/TCP (web), 8443/TCP (websecure)
+    Host Ports:    0/TCP (metrics), 0/TCP (traefik), 0/TCP (web), 0/TCP (websecure)
+    Args:
+      --entryPoints.metrics.address=:9100/tcp
+      --entryPoints.traefik.address=:8080/tcp
+      --entryPoints.web.address=:8000/tcp
+      --entryPoints.websecure.address=:8443/tcp
+      --api.dashboard=true
+      --ping=true
+      --metrics.prometheus=true
+      --metrics.prometheus.entrypoint=metrics
+      --providers.kubernetescrd
+      --providers.kubernetescrd.allowEmptyServices=true
+      --providers.kubernetesingress
+      --providers.kubernetesingress.allowEmptyServices=true
+      --providers.kubernetesingress.ingressendpoint.publishedservice=kube-system/traefik
+      --entryPoints.websecure.http.tls=true
+      --log.level=INFO
+    State:          Running
+      Started:      Wed, 28 Jan 2026 20:55:53 +0000
+    Last State:     Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Tue, 27 Jan 2026 18:46:34 +0000
+      Finished:     Tue, 27 Jan 2026 21:34:40 +0000
+    Ready:          True
+    Restart Count:  7
+    Liveness:       http-get http://:8080/ping delay=2s timeout=2s period=10s #success=1 #failure=3
+    Readiness:      http-get http://:8080/ping delay=2s timeout=2s period=10s #success=1 #failure=1
+    Environment:
+      POD_NAME:       traefik-6f5f87584-f552z (v1:metadata.name)
+      POD_NAMESPACE:  kube-system (v1:metadata.namespace)
+    Mounts:
+      /data from data (rw)
+      /tmp from tmp (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-9dt2r (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  data:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  tmp:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:     
+    SizeLimit:  <unset>
+  kube-api-access-9dt2r:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 CriticalAddonsOnly op=Exists
+                             node-role.kubernetes.io/control-plane:NoSchedule op=Exists
+                             node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason          Age                From     Message
+  ----     ------          ----               ----     -------
+  Normal   SandboxChanged  23h                kubelet  Pod sandbox changed, it will be killed and re-created.
+  Normal   Pulled          18m                kubelet  Container image "rancher/mirrored-library-traefik:3.5.1" already present on machine
+  Normal   Created         18m                kubelet  Created container: traefik
+  Normal   Started         18m                kubelet  Started container traefik
+  Warning  Unhealthy       18m                kubelet  Liveness probe failed: Get "http://10.42.1.191:8080/ping": dial tcp 10.42.1.191:8080: connect: connection refused
+  Warning  Unhealthy       18m (x2 over 18m)  kubelet  Readiness probe failed: Get "http://10.42.1.191:8080/ping": dial tcp 10.42.1.191:8080: connect: connection refused
+root@dakube:~# sudo iptables -t nat -L -n --line-numbers | less
+root@dakube:~# iptables -t nat -L KUBE-SERVICES -n | grep web-svc
+KUBE-SVC-SRNXP4JNS2EQLOND  6    --  0.0.0.0/0            10.43.214.253        /* default/web-svc cluster IP */ tcp dpt:80
+
+
+root@dakube:~# kubectl run curl \
+  --image=curlimages/curl \
+  --restart=Never \
+  --command -- sleep 3600
+pod/curl created
+root@dakube:~# kubectl exec -it curl -- curl web-svc
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+root@dakube:~# ss -tulpn | grep 80
+root@dakube:~# 
+root@dakube:~# 
+root@dakube:~# ss -tulpn 
+Netid       State        Recv-Q        Send-Q               Local Address:Port                Peer Address:Port       Process                                                                                                               
+udp         UNCONN       0             0                          0.0.0.0:68                       0.0.0.0:*           users:(("dhclient",pid=533,fd=7))                                                                                    
+udp         UNCONN       0             0                          0.0.0.0:111                      0.0.0.0:*           users:(("rpcbind",pid=377,fd=5),("systemd",pid=1,fd=34))                                                             
+udp         UNCONN       0             0                          0.0.0.0:8472                     0.0.0.0:*                                                                                                                                
+udp         UNCONN       0             0                             [::]:111                         [::]:*           users:(("rpcbind",pid=377,fd=7),("systemd",pid=1,fd=36))                                                             
+tcp         LISTEN       0             128                        0.0.0.0:22                       0.0.0.0:*           users:(("sshd",pid=601,fd=3))                                                                                        
+tcp         LISTEN       0             4096                       0.0.0.0:111                      0.0.0.0:*           users:(("rpcbind",pid=377,fd=4),("systemd",pid=1,fd=33))                                                             
+tcp         LISTEN       0             4096                     127.0.0.1:10010                    0.0.0.0:*           users:(("containerd",pid=639,fd=6))                                                                                  
+tcp         LISTEN       0             4096                     127.0.0.1:10248                    0.0.0.0:*           users:(("k3s-server",pid=594,fd=234))                                                                                
+tcp         LISTEN       0             4096                     127.0.0.1:10249                    0.0.0.0:*           users:(("k3s-server",pid=594,fd=251))                                                                                
+tcp         LISTEN       0             64                         0.0.0.0:34435                    0.0.0.0:*                                                                                                                                
+tcp         LISTEN       0             4096                     127.0.0.1:10256                    0.0.0.0:*           users:(("k3s-server",pid=594,fd=249))                                                                                
+tcp         LISTEN       0             4096                     127.0.0.1:10257                    0.0.0.0:*           users:(("k3s-server",pid=594,fd=213))                                                                                
+tcp         LISTEN       0             4096                     127.0.0.1:10258                    0.0.0.0:*           users:(("k3s-server",pid=594,fd=162))                                                                                
+tcp         LISTEN       0             4096                     127.0.0.1:10259                    0.0.0.0:*           users:(("k3s-server",pid=594,fd=223))                                                                                
+tcp         LISTEN       0             4096                     127.0.0.1:6444                     0.0.0.0:*           users:(("k3s-server",pid=594,fd=23))                                                                                 
+tcp         LISTEN       0             128                           [::]:22                          [::]:*           users:(("sshd",pid=601,fd=4))                                                                                        
+tcp         LISTEN       0             4096                             *:10250                          *:*           users:(("k3s-server",pid=594,fd=235))                                                                                
+tcp         LISTEN       0             4096                          [::]:111                         [::]:*           users:(("rpcbind",pid=377,fd=6),("systemd",pid=1,fd=35))                                                             
+tcp         LISTEN       0             4096                             *:6443                           *:*           users:(("k3s-server",pid=594,fd=13))                                                                                 
+tcp         LISTEN       0             64                            [::]:33315                       [::]:*                                                                                                                                
+root@dakube:~# kubectl get pod
+NAME   READY   STATUS    RESTARTS   AGE
+curl   1/1     Running   0          96s
+web    1/1     Running   0          24m
+root@dakube:~# 
+root@dakube:~# 
+root@dakube:~# kubectl delete pod web curl
+kubectl delete svc web-svc
+pod "web" deleted from default namespace
+pod "curl" deleted from default namespace
+
+service "web-svc" deleted from default namespace
+
