@@ -2921,3 +2921,57 @@ pod "curl" deleted from default namespace
 
 service "web-svc" deleted from default namespace
 
+TP 5.4
+
+root@dakube:~# k get services
+NAME            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP   10.43.0.1      <none>        443/TCP        298d
+myapp-service   NodePort    10.43.62.254   <none>        80:30008/TCP   284d
+root@dakube:~# 
+root@dakube:~# 
+root@dakube:~# k run web --image=nginx --restart=never
+error: invalid restart policy: never
+See 'kubectl run -h' for help and examples
+root@dakube:~# k run web --image=nginx --restart=Never
+pod/web created
+root@dakube:~# 
+root@dakube:~# 
+root@dakube:~# k get pod
+NAME   READY   STATUS    RESTARTS   AGE
+web    1/1     Running   0          5s
+root@dakube:~# k get pod
+NAME   READY   STATUS    RESTARTS   AGE
+web    1/1     Running   0          51s
+root@dakube:~# k expose pod web --name web-nodeport --port 80 --target-port 80 --type NodePort
+service/web-nodeport exposed
+root@dakube:~# 
+root@dakube:~# 
+root@dakube:~# k get svc
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP   10.43.0.1       <none>        443/TCP        298d
+myapp-service   NodePort    10.43.62.254    <none>        80:30008/TCP   284d
+web-nodeport    NodePort    10.43.197.145   <none>        80:30738/TCP   7s
+root@dakube:~# 
+root@dakube:~# ss -tulpn | grep 3
+udp   UNCONN 0      0            0.0.0.0:68         0.0.0.0:*    users:(("dhclient",pid=539,fd=7))                       
+udp   UNCONN 0      0            0.0.0.0:111        0.0.0.0:*    users:(("rpcbind",pid=395,fd=5),("systemd",pid=1,fd=34))
+udp   UNCONN 0      0               [::]:111           [::]:*    users:(("rpcbind",pid=395,fd=7),("systemd",pid=1,fd=36))
+tcp   LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=609,fd=3))                           
+tcp   LISTEN 0      4096         0.0.0.0:111        0.0.0.0:*    users:(("rpcbind",pid=395,fd=4),("systemd",pid=1,fd=33))
+tcp   LISTEN 0      4096       127.0.0.1:10248      0.0.0.0:*    users:(("k3s-server",pid=602,fd=224))                   
+tcp   LISTEN 0      4096       127.0.0.1:10249      0.0.0.0:*    users:(("k3s-server",pid=602,fd=237))                   
+tcp   LISTEN 0      4096       127.0.0.1:10258      0.0.0.0:*    users:(("k3s-server",pid=602,fd=147))                   
+tcp   LISTEN 0      4096       127.0.0.1:10259      0.0.0.0:*    users:(("k3s-server",pid=602,fd=211))                   
+tcp   LISTEN 0      4096       127.0.0.1:10256      0.0.0.0:*    users:(("k3s-server",pid=602,fd=254))                   
+tcp   LISTEN 0      4096       127.0.0.1:10257      0.0.0.0:*    users:(("k3s-server",pid=602,fd=206))                   
+tcp   LISTEN 0      4096       127.0.0.1:6444       0.0.0.0:*    users:(("k3s-server",pid=602,fd=23))                    
+tcp   LISTEN 0      64              [::]:34723         [::]:*                                                            
+tcp   LISTEN 0      4096               *:10250            *:*    users:(("k3s-server",pid=602,fd=228))                   
+tcp   LISTEN 0      4096            [::]:111           [::]:*    users:(("rpcbind",pid=395,fd=6),("systemd",pid=1,fd=35))
+tcp   LISTEN 0      4096               *:6443             *:*    users:(("k3s-server",pid=602,fd=12))                    
+root@dakube:~# ss -tulpn | grep 30738
+root@dakube:~# 
+root@dakube:~# iptables -t nat -L -n | grep 30738
+KUBE-EXT-GCYSPZR5VVR6P7RM  6    --  0.0.0.0/0            127.0.0.0/8          /* default/web-nodeport */ tcp dpt:30738 nfacct-name  localhost_nps_accepted_pkts
+KUBE-EXT-GCYSPZR5VVR6P7RM  6    --  0.0.0.0/0            0.0.0.0/0            /* default/web-nodeport */ tcp dpt:30738
+
