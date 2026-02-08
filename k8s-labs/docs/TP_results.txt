@@ -3245,3 +3245,188 @@ admin
 
 $ kubectl exec -it secret-test -- cat /etc/secret/DB_PASSWORD
 supersecret
+
+
+
+TP 6.4
+
+
+$ k apply -f pvc.yaml 
+persistentvolumeclaim/my-pvc created
+
+$ k get pvc
+NAME     STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+my-pvc   Pending                                      local-path     <unset>                 5s
+
+$ k get pod
+No resources found in default namespace.
+
+$ k apply -f web-pvc.yaml 
+pod/nginx-2 created
+
+$ k get pod
+NAME      READY   STATUS    RESTARTS   AGE
+nginx-2   1/1     Running   0          90s
+
+$ k get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-88c452ad-6452-48c8-8793-2c8f00bf682e   1Gi        RWO            Delete           Bound    default/my-pvc   local-path     <unset>                          97s
+
+$ k get pvc
+NAME     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+my-pvc   Bound    pvc-88c452ad-6452-48c8-8793-2c8f00bf682e   1Gi        RWO            local-path     <unset>                 23m
+
+$ k exec -it nginx-2 -- echo "hello pvc" > /data/test.txt
+bash: /data/test.txt: No such file or directory
+
+$ k exec -it nginx-2 -- df
+Filesystem     1K-blocks    Used Available Use% Mounted on
+overlay         60855576 9449612  48297456  17% /
+tmpfs              65536       0     65536   0% /dev
+/dev/mmcblk1p2  60855576 9449612  48297456  17% /data
+shm                65536       0     65536   0% /dev/shm
+tmpfs            1886144      12   1886132   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs             943072       0    943072   0% /proc/asound
+tmpfs             943072       0    943072   0% /sys/firmware
+
+$ k describe pod nginx-2
+Name:             nginx-2
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             dakube/192.168.1.5
+Start Time:       Sun, 08 Feb 2026 22:28:25 +0100
+Labels:           app=myapp
+Annotations:      <none>
+Status:           Running
+IP:               10.42.1.218
+IPs:
+  IP:  10.42.1.218
+Containers:
+  nginx:
+    Container ID:   containerd://60234dde9f8aaf761e3ef39cbe5ec7ebac206e5e8fad0ced5446d9f3d86f2573
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:341bf0f3ce6c5277d6002cf6e1fb0319fa4252add24ab6a0e262e0056d313208
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sun, 08 Feb 2026 22:28:27 +0100
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /data from data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bgt4d (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  data:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  my-pvc
+    ReadOnly:   false
+  kube-api-access-bgt4d:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age    From               Message
+  ----    ------     ----   ----               -------
+  Normal  Scheduled  7m52s  default-scheduler  Successfully assigned default/nginx-2 to dakube
+  Normal  Pulling    7m52s  kubelet            Pulling image "nginx"
+  Normal  Pulled     7m51s  kubelet            Successfully pulled image "nginx" in 901ms (901ms including waiting). Image size: 61268012 bytes.
+  Normal  Created    7m51s  kubelet            Created container: nginx
+  Normal  Started    7m51s  kubelet            Started container nginx
+
+  $ k get all
+NAME          READY   STATUS    RESTARTS   AGE
+pod/nginx-2   1/1     Running   0          9m55s
+
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.43.0.1    <none>        443/TCP   305d
+
+$ k get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-88c452ad-6452-48c8-8793-2c8f00bf682e   1Gi        RWO            Delete           Bound    default/my-pvc   local-path     <unset>                          9m56s
+
+$ k exec -it nginx-2 -- bash
+root@nginx-2:/# df
+Filesystem     1K-blocks    Used Available Use% Mounted on
+overlay         60855576 9449616  48297452  17% /
+tmpfs              65536       0     65536   0% /dev
+/dev/mmcblk1p2  60855576 9449616  48297452  17% /data
+shm                65536       0     65536   0% /dev/shm
+tmpfs            1886144      12   1886132   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs             943072       0    943072   0% /proc/asound
+tmpfs             943072       0    943072   0% /sys/firmware
+root@nginx-2:/# df -h
+Filesystem      Size  Used Avail Use% Mounted on
+overlay          59G  9.1G   47G  17% /
+tmpfs            64M     0   64M   0% /dev
+/dev/mmcblk1p2   59G  9.1G   47G  17% /data
+shm              64M     0   64M   0% /dev/shm
+tmpfs           1.8G   12K  1.8G   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs           921M     0  921M   0% /proc/asound
+tmpfs           921M     0  921M   0% /sys/firmware
+root@nginx-2:/# 
+exit
+
+$ k delete pod nginx-2
+pod "nginx-2" deleted
+
+$ k get pvc
+NAME     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+my-pvc   Bound    pvc-88c452ad-6452-48c8-8793-2c8f00bf682e   1Gi        RWO            local-path     <unset>                 32m
+
+$ k get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-88c452ad-6452-48c8-8793-2c8f00bf682e   1Gi        RWO            Delete           Bound    default/my-pvc   local-path     <unset>                          11m
+
+$ k apply -f web-pvc.yaml 
+pod/nginx-2 created
+
+$ k get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+pvc-88c452ad-6452-48c8-8793-2c8f00bf682e   1Gi        RWO            Delete           Bound    default/my-pvc   local-path     <unset>                          11m
+
+$ k exec -it nginx-2 -- bash
+root@nginx-2:/# echo "hello pvc" > /data/test.txt
+root@nginx-2:/# ls /data
+test.txt
+root@nginx-2:/# cat /data/test.txt 
+hello pvc
+root@nginx-2:/# 
+root@nginx-2:/# 
+root@nginx-2:/# exit
+exit
+
+$ k delete pod nginx-2
+pod "nginx-2" deleted
+
+$ k get pod
+No resources found in default namespace.
+
+$ k apply -f web-pvc.yaml 
+pod/nginx-2 created
+
+$ k get pod
+NAME      READY   STATUS    RESTARTS   AGE
+nginx-2   1/1     Running   0          3s
+
+
+$ k exec -it nginx-2 -- bash
+root@nginx-2:/# ls /data/
+test.txt
+root@nginx-2:/# exit
+exit
+
