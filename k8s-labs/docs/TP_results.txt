@@ -3106,3 +3106,72 @@ $ k logs cm-test
 APP_MESSAGE=Hello from ConfigMap
 APP_ENV=dev
 
+TP 6.2
+
+$ kubectl get configmap
+NAME               DATA   AGE
+app-config         2      139m
+kube-root-ca.crt   1      305d
+
+$ kubectl describe configmap
+Name:         app-config
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+APP_ENV:
+----
+dev
+APP_MESSAGE:
+----
+Hello from ConfigMap
+
+BinaryData
+====
+
+Events:  <none>
+
+$ kubectl apply -f app-config-files.yaml
+configmap/app-config-files created
+
+ kubectl describe configmap app-config-files
+Name:         app-config-files
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+app.conf:
+----
+ENV=prod
+MESSAGE=Hello from file ConfigMap
+
+
+BinaryData
+====
+
+Events:  <none>
+
+$ kubectl apply -f configmap-file-pod.yaml
+pod/cm-file-test created
+
+$ kubectl get pod
+NAME                   READY   STATUS    RESTARTS      AGE
+cm-file-test           1/1     Running   0             22s
+cm-test                1/1     Running   2 (26m ago)   146m
+web-75d5f59645-gl2hv   1/1     Running   0             3h4m
+web-75d5f59645-nfspj   1/1     Running   0             3h4m
+
+ kubectl exec -it cm-file-test -- ls -l /etc/config
+total 0
+lrwxrwxrwx    1 root     root            15 Feb  8 13:55 app.conf -> ..data/app.conf
+
+$ kubectl exec -it cm-file-test -- cat /etc/config/app.conf
+ENV=prod
+MESSAGE=Hello from file ConfigMap
+
+
+
