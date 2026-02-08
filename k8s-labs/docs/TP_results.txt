@@ -2975,3 +2975,69 @@ root@dakube:~# iptables -t nat -L -n | grep 30738
 KUBE-EXT-GCYSPZR5VVR6P7RM  6    --  0.0.0.0/0            127.0.0.0/8          /* default/web-nodeport */ tcp dpt:30738 nfacct-name  localhost_nps_accepted_pkts
 KUBE-EXT-GCYSPZR5VVR6P7RM  6    --  0.0.0.0/0            0.0.0.0/0            /* default/web-nodeport */ tcp dpt:30738
 
+TP 5.5
+
+
+$ kubectl apply -f web.yaml
+
+$ k get pods
+NAME                   READY   STATUS      RESTARTS   AGE
+web                    0/1     Completed   0          6d14h
+web-75d5f59645-gl2hv   1/1     Running     0          13m
+web-75d5f59645-nfspj   1/1     Running     0          13m
+
+
+$ kubectl apply -f web-svc.yaml
+
+$ kubectl get svc web
+NAME   TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+web    ClusterIP   10.43.32.206   <none>        80/TCP    12m
+
+$ kubectl apply -f web-ingress.yaml
+
+$ kubectl get ingress
+NAME   CLASS     HOSTS              ADDRESS       PORTS   AGE
+web    traefik   web.dakube.local   192.168.1.5   80      10m
+
+$ curl http://web.dakube.local
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+$ kubectl get all
+NAME                       READY   STATUS      RESTARTS   AGE
+pod/web                    0/1     Completed   0          6d14h    <<<< reste du TP précédent
+pod/web-75d5f59645-gl2hv   1/1     Running     0          17m
+pod/web-75d5f59645-nfspj   1/1     Running     0          17m
+
+NAME                    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+service/kubernetes      ClusterIP   10.43.0.1       <none>        443/TCP        305d
+service/myapp-service   NodePort    10.43.62.254    <none>        80:30008/TCP   290d   <<<< reste d'un précédent test
+service/web             ClusterIP   10.43.32.206    <none>        80/TCP         14m
+service/web-nodeport    NodePort    10.43.197.145   <none>        80:30738/TCP   6d14h  <<<< reste du TP précédent
+
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/web   2/2     2            2           17m
+
+NAME                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/web-75d5f59645   2         2         2       17m
