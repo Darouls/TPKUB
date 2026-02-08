@@ -3106,7 +3106,13 @@ $ k logs cm-test
 APP_MESSAGE=Hello from ConfigMap
 APP_ENV=dev
 
+
+
+
 TP 6.2
+
+
+
 
 $ kubectl get configmap
 NAME               DATA   AGE
@@ -3175,3 +3181,67 @@ MESSAGE=Hello from file ConfigMap
 
 
 
+
+TP6.3
+
+
+
+
+$ kubectl create secret generic db-secret \
+  --from-literal=DB_USER=admin \
+  --from-literal=DB_PASSWORD=supersecret
+secret/db-secret created
+
+$ kubectl get secret
+NAME        TYPE     DATA   AGE
+db-secret   Opaque   2      8s
+
+$ kubectl describe secret db-secret
+Name:         db-secret
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Type:  Opaque
+
+Data
+====
+DB_PASSWORD:  11 bytes
+DB_USER:      5 bytes
+
+$ k apply -f secret-config-files.yaml 
+pod/secret-test created
+
+$ k get secret
+NAME        TYPE     DATA   AGE
+db-secret   Opaque   2      16m
+
+$ kubectl describe secret db-secret
+Name:         db-secret
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Type:  Opaque
+
+Data
+====
+DB_PASSWORD:  11 bytes
+DB_USER:      5 bytes
+
+$ k get pod
+NAME                   READY   STATUS    RESTARTS       AGE
+cm-file-test           1/1     Running   0              37m
+cm-test                1/1     Running   3 (4m7s ago)   3h4m
+secret-test            1/1     Running   0              37s
+web-75d5f59645-gl2hv   1/1     Running   0              3h41m
+web-75d5f59645-nfspj   1/1     Running   0              3h41m
+
+$ kubectl exec -it secret-test -- ls /etc/secret
+DB_PASSWORD  DB_USER
+
+$ kubectl exec -it secret-test -- cat /etc/secret/DB_USER
+admin
+
+$ kubectl exec -it secret-test -- cat /etc/secret/DB_PASSWORD
+supersecret
