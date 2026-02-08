@@ -3041,3 +3041,68 @@ deployment.apps/web   2/2     2            2           17m
 
 NAME                             DESIRED   CURRENT   READY   AGE
 replicaset.apps/web-75d5f59645   2         2         2       17m
+
+$ kubectl delete pod web
+kubectl delete svc web-nodeport
+kubectl delete svc myapp-service
+pod "web" deleted
+service "web-nodeport" deleted
+service "myapp-service" deleted
+
+$ k get all
+NAME                       READY   STATUS    RESTARTS   AGE
+pod/web-75d5f59645-gl2hv   1/1     Running   0          23m
+pod/web-75d5f59645-nfspj   1/1     Running   0          23m
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.43.0.1      <none>        443/TCP   305d
+service/web          ClusterIP   10.43.32.206   <none>        80/TCP    20m
+
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/web   2/2     2            2           23m
+
+NAME                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/web-75d5f59645   2         2         2       23m
+
+
+TP6.1
+
+ kubectl apply -f app-config.yaml
+configmap/app-config created
+
+$ kubectl get configmap
+NAME               DATA   AGE
+app-config         2      7s
+kube-root-ca.crt   1      305d
+
+$ kubectl describe configmap app-config
+Name:         app-config
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+APP_ENV:
+----
+dev
+APP_MESSAGE:
+----
+Hello from ConfigMap
+
+BinaryData
+====
+
+Events:  <none>
+
+$ kubectl apply -f configmap-pod.yaml
+pod/cm-test created
+
+$ k get pod cm-test
+NAME      READY   STATUS    RESTARTS   AGE
+cm-test   1/1     Running   0          11s
+
+$ k logs cm-test
+APP_MESSAGE=Hello from ConfigMap
+APP_ENV=dev
+
