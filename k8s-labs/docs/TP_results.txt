@@ -3430,3 +3430,90 @@ test.txt
 root@nginx-2:/# exit
 exit
 
+
+
+TP6.4 appliqué: base PG avec secret
+
+
+
+$ k get pod
+No resources found in default namespace.
+$ k get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.43.0.1    <none>        443/TCP   307d
+
+$ kubectl create secret generic pg-secret \
+  --from-literal=POSTGRES_USER=admin \
+  --from-literal=POSTGRES_PASSWORD=adminpass \
+  --from-literal=POSTGRES_DB=mydb
+secret/pg-secret created
+
+$ kubectl get secret pg-secret
+NAME        TYPE     DATA   AGE
+pg-secret   Opaque   3      10s
+
+$ k apply -f pg-pvc.yaml 
+persistentvolumeclaim/pg-pvc created
+
+$ k get pvc
+NAME     STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+pg-pvc   Pending                                      local-path     <unset>                 9s
+
+$ k apply -f pg-pod.yaml
+pod/postgres created
+
+$ k get pod
+NAME       READY   STATUS              RESTARTS   AGE
+postgres   0/1     ContainerCreating   0          20s
+
+$ k get pvc
+NAME     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+pg-pvc   Bound    pvc-06e58992-5803-4810-b4c3-c301c350e9bf   2Gi        RWO            local-path     <unset>                 9m49s
+
+$ k get pod
+NAME       READY   STATUS    RESTARTS   AGE
+postgres   1/1     Running   0          3m13s
+
+$ kubectl exec -it postgres -- psql -U admin -d mydb
+psql (15.15 (Debian 15.15-1.pgdg13+1))
+Type "help" for help.
+
+mydb=# CREATE TABLE test (
+  id SERIAL PRIMARY KEY,
+  name TEXT
+);
+CREATE TABLE
+mydb=# INSERT INTO test (name) VALUES ('hello from pvc');
+INSERT 0 1
+mydb=# SELECT * FROM test;
+ id |      name      
+----+----------------
+  1 | hello from pvc
+(1 row)
+
+mydb=# \q
+
+$ kubectl delete pod postgres
+pod "postgres" deleted
+
+$ kubectl apply -f pg-pod.yaml
+pod/postgres created
+
+$ k get pod
+NAME       READY   STATUS    RESTARTS   AGE
+postgres   1/1     Running   0          6s
+
+
+$ kubectl exec -it postgres -- psql -U admin -d mydb
+psql (15.15 (Debian 15.15-1.pgdg13+1))
+Type "help" for help.
+
+mydb=# select * from test;
+ id |      name      
+----+----------------
+  1 | hello from pvc
+(1 row)
+
+mydb=# 
+mydb=# \q
+
