@@ -3517,3 +3517,75 @@ mydb=# select * from test;
 mydb=# 
 mydb=# \q
 
+
+
+TP 6.5
+
+
+ k get pod
+NAME       READY   STATUS    RESTARTS      AGE
+postgres   1/1     Running   1 (23h ago)   24h
+
+
+$ kubectl delete pod postgres --ignore-not-found
+pod "postgres" deleted
+$ kubectl delete pvc pg-pvc --ignore-not-found
+persistentvolumeclaim "pg-pvc" deleted
+$ kubectl delete secret pg-secret --ignore-not-found
+secret "pg-secret" deleted
+
+$ k get pod
+No resources found in default namespace.
+
+$ kubectl apply -f pg-secret.yaml
+secret/pg-secret created
+
+$ k apply -f pg-service.yaml 
+service/postgres created
+
+$ kubectl apply -f pg-statefulset.yaml
+statefulset.apps/postgres created
+
+$ k get pod -w
+NAME         READY   STATUS              RESTARTS   AGE
+postgres-0   0/1     ContainerCreating   0          6s
+postgres-0   1/1     Running             0          6s
+
+$ kubectl get pvc
+NAME                 STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+pg-data-postgres-0   Bound    pvc-dcabbb73-01c5-496d-8cd0-2faeaeea919f   2Gi        RWO            local-path     <unset>                 5m42s
+
+$ kubectl exec -it postgres-0 -- psql -U admin -d mydb
+psql (15.15 (Debian 15.15-1.pgdg13+1))
+Type "help" for help.
+
+mydb=# CREATE TABLE test2 (id SERIAL PRIMARY KEY, msg TEXT);
+INSERT INTO test2 (msg) VALUES ('hello from statefulset');
+SELECT * FROM test2;
+\q
+CREATE TABLE
+INSERT 0 1
+ id |          msg           
+----+------------------------
+  1 | hello from statefulset
+(1 row)
+
+$ kubectl delete pod postgres-0
+pod "postgres-0" deleted
+
+$ k get pod -w
+NAME         READY   STATUS    RESTARTS   AGE
+postgres-0   1/1     Running   0          6s
+
+$ kubectl exec -it postgres-0 -- psql -U admin -d mydb
+psql (15.15 (Debian 15.15-1.pgdg13+1))
+Type "help" for help.
+
+mydb=# SELECT * FROM test2;
+ id |          msg           
+----+------------------------
+  1 | hello from statefulset
+(1 row)
+
+mydb=# \q
+
