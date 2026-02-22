@@ -3589,3 +3589,222 @@ mydb=# SELECT * FROM test2;
 
 mydb=# \q
 
+
+TP 7
+
+
+
+$ kubectl apply -f nginx-deploy.yaml 
+deployment.apps/nginx-deploy created
+
+$ kubectl get pods -o wide
+NAME                            READY   STATUS      RESTARTS       AGE     IP           NODE     NOMINATED NODE   READINESS GATES
+dns-test                        0/1     Completed   0              5d23h   <none>       dakube   <none>           <none>
+nginx-deploy-565dc87949-98rcw   1/1     Running     0              33s     10.42.1.11   dakube   <none>           <none>
+nginx-deploy-565dc87949-cqrbj   1/1     Running     0              33s     10.42.1.9    dakube   <none>           <none>
+nginx-deploy-565dc87949-mp4zt   1/1     Running     0              33s     10.42.1.10   dakube   <none>           <none>
+postgres-0                      1/1     Running     4 (5d9h ago)   10d     10.42.1.4    dakube   <none>           <none>
+
+$ kubectl expose deployment nginx-deploy \
+  --type NodePort \
+  --port 80
+service/nginx-deploy exposed
+
+$ kubectl get svc nginx-deploy
+NAME           TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+nginx-deploy   NodePort   10.43.252.163   <none>        80:31072/TCP   11s
+
+$ curl http://dakube:31072
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+$ for i in {1..10}; do curl -s http://dakube:31072 | grep Welcome; done
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+
+
+$ kubectl describe pod nginx-deploy-565dc87949-98rcw
+Name:             nginx-deploy-565dc87949-98rcw
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             dakube/192.168.1.5
+Start Time:       Sun, 22 Feb 2026 22:59:29 +0100
+Labels:           app=nginx-demo
+                  pod-template-hash=565dc87949
+Annotations:      <none>
+Status:           Running
+IP:               10.42.1.11
+IPs:
+  IP:           10.42.1.11
+Controlled By:  ReplicaSet/nginx-deploy-565dc87949
+Containers:
+  nginx:
+    Container ID:   containerd://c3e5fa366f537a3c43cc872daae5428275661a7bb640ed2212050d9f7dcd06e7
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:341bf0f3ce6c5277d6002cf6e1fb0319fa4252add24ab6a0e262e0056d313208
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Sun, 22 Feb 2026 22:59:32 +0100
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-l4zll (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       True 
+  ContainersReady             True 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-l4zll:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  11m   default-scheduler  Successfully assigned default/nginx-deploy-565dc87949-98rcw to dakube
+  Normal  Pulling    11m   kubelet            Pulling image "nginx"
+  Normal  Pulled     11m   kubelet            Successfully pulled image "nginx" in 1.25s (1.25s including waiting). Image size: 61268012 bytes.
+  Normal  Created    11m   kubelet            Created container: nginx
+  Normal  Started    11m   kubelet            Started container nginx
+
+  $ kubectl exec -it nginx-deploy-565dc87949-98rcw -- bash
+root@nginx-deploy-565dc87949-98rcw:/# 
+root@nginx-deploy-565dc87949-98rcw:/# 
+root@nginx-deploy-565dc87949-98rcw:/# tail -f /var/log/nginx/access.log 
+^C
+root@nginx-deploy-565dc87949-98rcw:/# tail /var/log/nginx/access.log ^C
+root@nginx-deploy-565dc87949-98rcw:/# exit
+
+$ k get pod
+NAME                            READY   STATUS      RESTARTS       AGE
+dns-test                        0/1     Completed   0              6d
+nginx-deploy-565dc87949-98rcw   1/1     Running     0              23m
+nginx-deploy-565dc87949-cqrbj   1/1     Running     0              23m
+nginx-deploy-565dc87949-mp4zt   1/1     Running     0              23m
+postgres-0                      1/1     Running     4 (5d9h ago)   10d
+
+$ kubectl scale deployment nginx-deploy --replicas=6
+deployment.apps/nginx-deploy scaled
+
+$ k get pod
+NAME                            READY   STATUS              RESTARTS       AGE
+dns-test                        0/1     Completed           0              6d
+nginx-deploy-565dc87949-98rcw   1/1     Running             0              24m
+nginx-deploy-565dc87949-9wpjg   0/1     ContainerCreating   0              3s
+nginx-deploy-565dc87949-9zkb8   1/1     Running             0              33s
+nginx-deploy-565dc87949-cjbnb   0/1     ContainerCreating   0              3s
+nginx-deploy-565dc87949-cqrbj   1/1     Running             0              24m
+nginx-deploy-565dc87949-grnmt   0/1     ContainerCreating   0              3s
+postgres-0                      1/1     Running             4 (5d9h ago)   10d
+
+$ kubectl scale deployment nginx-deploy --replicas=2
+deployment.apps/nginx-deploy scaled
+
+ k get pod
+NAME                            READY   STATUS        RESTARTS       AGE
+dns-test                        0/1     Completed     0              6d
+nginx-deploy-565dc87949-98rcw   1/1     Running       0              24m
+nginx-deploy-565dc87949-9wpjg   1/1     Terminating   0              16s
+nginx-deploy-565dc87949-9zkb8   1/1     Terminating   0              46s
+nginx-deploy-565dc87949-cjbnb   1/1     Terminating   0              16s
+nginx-deploy-565dc87949-cqrbj   1/1     Running       0              24m
+nginx-deploy-565dc87949-grnmt   1/1     Terminating   0              16s
+postgres-0                      1/1     Running       4 (5d9h ago)   10d
+
+$ k get pod
+NAME                            READY   STATUS      RESTARTS       AGE
+dns-test                        0/1     Completed   0              6d
+nginx-deploy-565dc87949-98rcw   1/1     Running     0              24m
+nginx-deploy-565dc87949-cqrbj   1/1     Running     0              24m
+postgres-0                      1/1     Running     4 (5d9h ago)   10d
+
+$ kubectl describe svc nginx-deploy
+Warning: v1 Endpoints is deprecated in v1.33+; use discovery.k8s.io/v1 EndpointSlice
+Name:                     nginx-deploy
+Namespace:                default
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=nginx-demo
+Type:                     NodePort
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       10.43.252.163
+IPs:                      10.43.252.163
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  31072/TCP
+Endpoints:                10.42.1.11:80,10.42.1.9:80
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+
+$ while true; do curl -s http://dakube:31072 | grep Welcome; sleep 1; done
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+
+$ kubectl delete pod nginx-deploy-565dc87949-98rcw
+pod "nginx-deploy-565dc87949-98rcw" deleted
+
+$ while true; do curl -s http://dakube:31072 | grep Welcome; sleep 1; done
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
+<title>Welcome to nginx!</title>
+<h1>Welcome to nginx!</h1>
